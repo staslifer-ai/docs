@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Workflow — мультиагентна платформа розробки · Станіслав Ліфер</title>
+<meta name="description" content="Команда спеціалізованих AI-агентів: від ідеї до merged PR за ~1 годину, з quality gates і повним audit trail. Створено в Comfy, представлено на AWS Summit Warsaw 2026.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Workflow — мультиагентна платформа розробки">
+<meta property="og:description" content="Команда спеціалізованих AI-агентів: від ідеї до merged PR за ~1 годину. Створено в Comfy, представлено на AWS Summit Warsaw 2026.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/aiworkflow-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/ai-workflow.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<title>AI Workflow — Multi-agent Development Platform</title>
+<meta name="description" content="A team of specialized AI agents that carries a task from brief to a merged pull request — quality gates, full audit trail, provider-agnostic. Built at Comfy, presented at AWS Summit Warsaw 2026. EN / UK.">
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>
+
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <header class="masthead">
+      <span class="eyebrow">Multi-agent Development Platform</span>
+      <h1>AI Workflow</h1>
+      <p class="lede">A team of specialized <b>AI agents</b> that carries a task from a brief to a <b>merged pull request</b> — with clear roles, quality gates and a full audit trail. Built at <b>Comfy</b>, presented at <b>AWS Summit Warsaw 2026</b>.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Type</div><div class="v">Multi-agent platform<span class="sub">orchestration, not "vibe coding"</span></div></div>
+        <div class="cell"><div class="k">Status</div><div class="v">In production<span class="sub">used by devs &amp; business teams</span></div></div>
+        <div class="cell"><div class="k">Speed</div><div class="v">idea → merged PR<span class="sub">~1 hour · 4–20× faster</span></div></div>
+        <div class="cell"><div class="k">Engine</div><div class="v">Needs-Driven Dev<span class="sub">my own methodology</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">What it is</span></div>
+      <p class="thesis">AI Workflow is an orchestration approach where several specialized AI agents work as <span class="em">one team</span> — with clear roles, shared context, quality gates and a full audit trail — carrying a task from a brief to a checked pull request.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Why it exists</span>
+        <h2>From a dev queue to self-service</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>The problem</h3>
+          <p class="big">Comfy's admin panel had grown for <b>10+ years</b>. Every change went through the classic queue: business writes a request → waits for developers → teams are overloaded. Ideas piled up faster than they shipped.</p>
+        </div>
+        <div class="panel origin">
+          <h3>The shift</h3>
+          <p class="big">After setup, it's a <b>business user — not a developer</b> — who runs the pipeline. Today the business team ships a large share of changes itself, without the dev bottleneck.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">How it works · the agent pipeline</span>
+        <h2>One team, clear roles, quality gates</h2>
+        <p class="muted">A graph state machine drives specialized AI agents through quality gates. Each stage passes named artifacts to the next; a failure returns the task to a specific node — not to the start.</p>
+      </div>
+      <div class="pipe-frame">
+        <div class="pipe-scroll">
+          <div class="pipe">
+            <span class="node">PM</span><span class="arrow">→</span>
+            <span class="node review">PM·REV</span><span class="arrow">→</span>
+            <span class="node">BA</span><span class="arrow">→</span>
+            <span class="node review">BA·REV</span><span class="arrow">→</span>
+            <span class="node">DESIGN</span><span class="arrow">→</span>
+            <span class="node">DEV</span><span class="arrow">→</span>
+            <span class="node review">DEV·REV</span><span class="arrow">→</span>
+            <span class="node">QA</span><span class="arrow">→</span>
+            <span class="node review">QA·REV</span><span class="arrow">→</span>
+            <span class="node">PERF</span><span class="arrow">→</span>
+            <span class="node commit">COMMIT</span>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="item"><span class="swatch"></span> Base agent — creates artifact</div>
+          <div class="item"><span class="swatch review"></span> Review agent — audits against injected skills</div>
+          <div class="item"><span class="swatch commit"></span> Commit gate — passes only if all gates clear</div>
+          <div class="item"><span class="swatch return"></span> Auto-rollback — QA/PERF return to DEV</div>
+        </div>
+        <div class="pipe-notes">
+          <div class="pn"><h3>Six roles + reviews</h3><p>PM, Business Analyst, Designer, Developer, QA and Performance — each backed by a review agent checking security, performance, API testing and business requirements.</p></div>
+          <div class="pn"><span class="tag">Contained rollback</span><h3 style="margin-top:4px;">Failures don't cascade</h3><p>A QA fail or a critical perf finding sends the task back to DEV only — localizing the blast radius instead of restarting.</p></div>
+          <div class="pn"><h3>Full audit trail</h3><p>User stories, wireframes, specs, code review — every artifact is saved and traceable, unlike chaotic "vibe coding".</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">What makes it work</span>
+        <h2>Capabilities</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">A</span><div><h3>Provider-agnostic</h3><p>Runs on Claude Code, Kiro CLI or Codex CLI — choose the model per project, no lock-in.</p></div></div>
+        <div class="principle"><span class="idx">B</span><div><h3>Double-pass review</h3><p>Every artifact is created by one agent, then audited by a review agent for security, performance, API testing and business requirements.</p></div></div>
+        <div class="principle"><span class="idx">C</span><div><h3>Contained auto-rollback</h3><p>A QA fail or a critical performance finding returns the task to DEV — not to the start of the pipeline.</p></div></div>
+        <div class="principle"><span class="idx">D</span><div><h3>Full audit trail</h3><p>Specs, wireframes, code reviews and test results are persisted per task and stay traceable.</p></div></div>
+        <div class="principle"><span class="idx">E</span><div><h3>Jira-native &amp; configurable</h3><p>Works like a familiar process — creates tickets, tracks statuses. Pipelines are built visually and configured per project.</p></div></div>
+        <div class="principle"><span class="idx">F</span><div><h3>Business users, not only devs</h3><p>After setup, business teams run the agents themselves — real self-service delivery, beyond the developer queue.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The platform</span>
+        <h2>Built, in production</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">~1<span class="u">h</span></div><div class="lab">idea → merged pull request</div></div>
+        <div class="metric"><div class="fig">4–20<span class="u">×</span></div><div class="lab">task speed-up</div></div>
+        <div class="metric"><div class="fig">12<span class="u">+</span></div><div class="lab">specialized AI agents</div></div>
+        <div class="metric"><div class="fig">11</div><div class="lab">quality-gated pipeline stages</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">~22<span class="u">K</span></div><div class="lab">lines of Python</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">18</div><div class="lab">tables · multi-tenant model</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">4</div><div class="lab">pipeline templates · visual editor</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">3</div><div class="lab">AI providers · Claude · Kiro · Codex</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">SQLAlchemy 2.0 async</span>
+        <span class="chip">PostgreSQL · Alembic</span>
+        <span class="chip">JWT · RBAC</span>
+        <span class="chip">HTMX · Alpine · Drawflow</span>
+        <span class="chip">S3 artifacts · tmux</span>
+        <span class="chip">Claude · Kiro · Codex CLI</span>
+        <span class="chip">Jira</span>
+      </div>
+      <figure class="summit">
+        <div class="summit-grid">
+          <img src="assets/aiworkflow-summit-1.png" alt="AI Workflow at AWS Summit Warsaw 2026" loading="lazy">
+          <img src="assets/aiworkflow-summit-2.png" alt="Presenting AI Workflow at AWS Summit Warsaw 2026" loading="lazy">
+        </div>
+        <figcaption class="summit-cap">AI Workflow presented at AWS Summit Warsaw 2026.</figcaption>
+      </figure>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The engine</span>
+        <h2>Runs on Needs-Driven Development</h2>
+      </div>
+      <p class="thesis">AI Workflow executes my own methodology — <span class="em">Needs-Driven Development</span> — where a <span class="em">need</span> sits at the center of the whole flow: need → requirements → spec → code. <a href="needs-driven-development.html">Read about the methodology →</a></p>
+    </div>
+
+    <div class="sec resume">
+      <span class="eyebrow">Summary</span>
+      <h2>Highlights</h2>
+      <p class="sub">What it is, who built it, and what it already delivers.</p>
+      <div class="bullets">
+        <div class="bullet"><span class="b">▸</span><span>Conceived <b>AI Workflow</b> and built the first working version — an AI team that runs the full SDLC for any business that works by one.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Brought it to a multi-tenant platform <b>together with Mykhailo Berelet</b> (engineering): 12+ specialized agents, an 11-stage quality-gated pipeline, double-pass review, automatic rollback, provider-agnostic.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>It runs my own methodology — <a href="needs-driven-development.html"><b>Needs-Driven Development</b></a>: everything starts from the need.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Real impact at <b>Comfy</b>: ~1 hour from idea to merged PR, 4–20× faster; built ComfyAI (a 5-agent support system) and shipped admin, analytics and site/app features through it.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Presented at <b>AWS Summit Warsaw 2026</b> — see the <a href="https://dou.ua/forums/topic/59758/" target="_blank" rel="noopener">write-up on DOU</a>.</span></div>
+      </div>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">Idea &amp; first version</span><span class="v"><b>Mine.</b> I conceived AI Workflow and built the first working version — an AI development team driven by my Needs-Driven Development methodology.</span></div>
+      <div class="row"><span class="k">Platform</span><span class="v">Brought to a full engineering platform <b>together with Mykhailo Berelet</b> (IT Director, Comfy), who presented it at AWS Summit Warsaw 2026.</span></div>
+      <p class="disclaimer">A Comfy product. Reference: DOU write-up (dou.ua/forums/topic/59758). Metrics are approximate, from the project repository and the talk.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <header class="masthead">
+      <span class="eyebrow">Мультиагентна платформа розробки</span>
+      <h1>AI Workflow</h1>
+      <p class="lede">Команда спеціалізованих <b>AI-агентів</b>, що веде задачу від постановки до <b>merged pull request</b> — з чіткими ролями, quality gates та повним audit trail. Створено в <b>Comfy</b>, представлено на <b>AWS Summit Warsaw 2026</b>.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Тип</div><div class="v">Мультиагентна платформа<span class="sub">оркестрація, не «vibe coding»</span></div></div>
+        <div class="cell"><div class="k">Статус</div><div class="v">У продакшені<span class="sub">і розробники, і бізнес-команди</span></div></div>
+        <div class="cell"><div class="k">Швидкість</div><div class="v">ідея → merged PR<span class="sub">~1 година · у 4–20× швидше</span></div></div>
+        <div class="cell"><div class="k">Рушій</div><div class="v">Needs-Driven Dev<span class="sub">моя авторська методологія</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Що це</span></div>
+      <p class="thesis">AI Workflow — це orchestration-підхід, у якому декілька спеціалізованих AI-агентів працюють як <span class="em">єдина команда</span> — з чіткими ролями, спільним контекстом, quality gates та повним audit trail — і ведуть задачу від постановки до перевіреного pull request.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Навіщо воно</span>
+        <h2>Від черги розробки до self-service</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Проблема</h3>
+          <p class="big">Адмін-панель Comfy розвивалася <b>понад 10 років</b>. Будь-яка зміна йшла класичною чергою: бізнес формує запит → чекає розробників → команди перевантажені. Ідей накопичувалося більше, ніж встигали робити.</p>
+        </div>
+        <div class="panel origin">
+          <h3>Зсув</h3>
+          <p class="big">Після налаштування пайплайн запускає <b>бізнес-користувач, а не розробник</b>. Сьогодні бізнес-команда самостійно реалізує значну частину змін — без вузького місця у вигляді черги розробки.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Як працює · конвеєр агентів</span>
+        <h2>Одна команда, чіткі ролі, гейти якості</h2>
+        <p class="muted">Графова стейт-машина проводить спеціалізованих AI-агентів крізь гейти якості. Кожен етап передає іменовані артефакти далі; збій повертає задачу до конкретного вузла — не на початок.</p>
+      </div>
+      <div class="pipe-frame">
+        <div class="pipe-scroll">
+          <div class="pipe">
+            <span class="node">PM</span><span class="arrow">→</span>
+            <span class="node review">PM·REV</span><span class="arrow">→</span>
+            <span class="node">BA</span><span class="arrow">→</span>
+            <span class="node review">BA·REV</span><span class="arrow">→</span>
+            <span class="node">DESIGN</span><span class="arrow">→</span>
+            <span class="node">DEV</span><span class="arrow">→</span>
+            <span class="node review">DEV·REV</span><span class="arrow">→</span>
+            <span class="node">QA</span><span class="arrow">→</span>
+            <span class="node review">QA·REV</span><span class="arrow">→</span>
+            <span class="node">PERF</span><span class="arrow">→</span>
+            <span class="node commit">COMMIT</span>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="item"><span class="swatch"></span> Базовий агент — створює артефакт</div>
+          <div class="item"><span class="swatch review"></span> Агент-рев'ю — аудит за інʼєктованими skills</div>
+          <div class="item"><span class="swatch commit"></span> Гейт коміту — проходить лише якщо все чисто</div>
+          <div class="item"><span class="swatch return"></span> Авто-відкат — QA/PERF повертають до DEV</div>
+        </div>
+        <div class="pipe-notes">
+          <div class="pn"><h3>Шість ролей + рев'ю</h3><p>PM, бізнес-аналітик, дизайнер, розробник, QA та Performance — і на кожному етапі окремий review-агент перевіряє security, performance, API testing та бізнес-вимоги.</p></div>
+          <div class="pn"><span class="tag">Локалізований відкат</span><h3 style="margin-top:4px;">Збої не каскадять</h3><p>Фейл QA чи критична знахідка perf повертають задачу лише до DEV — локалізуючи наслідки замість рестарту.</p></div>
+          <div class="pn"><h3>Повний аудит-слід</h3><p>User stories, wireframes, специфікації, code review — кожен артефакт зберігається й простежується, на відміну від хаотичного «vibe coding».</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Завдяки чому працює</span>
+        <h2>Можливості</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">A</span><div><h3>Provider-agnostic</h3><p>Працює на Claude Code, Kiro CLI або Codex CLI — модель обирається під проєкт, без lock-in.</p></div></div>
+        <div class="principle"><span class="idx">B</span><div><h3>Подвійний прохід рев'ю</h3><p>Кожен артефакт створює один агент, потім review-агент аудитує його на security, performance, API testing та бізнес-вимоги.</p></div></div>
+        <div class="principle"><span class="idx">C</span><div><h3>Локалізований авто-відкат</h3><p>Фейл QA чи критична знахідка performance повертає задачу до DEV — а не на початок пайплайну.</p></div></div>
+        <div class="principle"><span class="idx">D</span><div><h3>Повний аудит-слід</h3><p>Специфікації, wireframes, code review та результати тестів зберігаються по кожній задачі й лишаються простежуваними.</p></div></div>
+        <div class="principle"><span class="idx">E</span><div><h3>Jira-native та конфігурована</h3><p>Працює як звичний процес — створює тікети, відстежує статуси. Пайплайни збираються візуально й налаштовуються під проєкт.</p></div></div>
+        <div class="principle"><span class="idx">F</span><div><h3>Бізнес-користувачі, не лише розробники</h3><p>Після налаштування бізнес-команди запускають агентів самі — справжня self-service доставка, поза чергою розробки.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Платформа</span>
+        <h2>Побудовано, у продакшені</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">~1<span class="u">год</span></div><div class="lab">ідея → merged pull request</div></div>
+        <div class="metric"><div class="fig">4–20<span class="u">×</span></div><div class="lab">прискорення задач</div></div>
+        <div class="metric"><div class="fig">12<span class="u">+</span></div><div class="lab">спеціалізованих AI-агентів</div></div>
+        <div class="metric"><div class="fig">11</div><div class="lab">етапів конвеєра з гейтами</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">~22<span class="u">K</span></div><div class="lab">рядків Python</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">18</div><div class="lab">таблиць · мультитенантна модель</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">4</div><div class="lab">шаблони конвеєра · візуальний редактор</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">3</div><div class="lab">AI-провайдери · Claude · Kiro · Codex</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">SQLAlchemy 2.0 async</span>
+        <span class="chip">PostgreSQL · Alembic</span>
+        <span class="chip">JWT · RBAC</span>
+        <span class="chip">HTMX · Alpine · Drawflow</span>
+        <span class="chip">S3 артефакти · tmux</span>
+        <span class="chip">Claude · Kiro · Codex CLI</span>
+        <span class="chip">Jira</span>
+      </div>
+      <figure class="summit">
+        <div class="summit-grid">
+          <img src="assets/aiworkflow-summit-1.png" alt="AI Workflow на AWS Summit Warsaw 2026" loading="lazy">
+          <img src="assets/aiworkflow-summit-2.png" alt="Презентація AI Workflow на AWS Summit Warsaw 2026" loading="lazy">
+        </div>
+        <figcaption class="summit-cap">AI Workflow на AWS Summit Warsaw 2026.</figcaption>
+      </figure>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Рушій</span>
+        <h2>Працює на Needs-Driven Development</h2>
+      </div>
+      <p class="thesis">AI Workflow виконує мою авторську методологію — <span class="em">Needs-Driven Development</span> — де в центрі всього процесу стоїть <span class="em">потреба</span>: потреба → вимоги → специфікація → код. <a href="needs-driven-development.html">Читати про методологію →</a></p>
+    </div>
+
+    <div class="sec resume">
+      <span class="eyebrow">Підсумок</span>
+      <h2>Головне</h2>
+      <p class="sub">Що це, хто збудував і що воно вже дає.</p>
+      <div class="bullets">
+        <div class="bullet"><span class="b">▸</span><span>Задумав <b>AI Workflow</b> і зробив першу робочу версію — AI-команду, що веде повний SDLC для будь-якого бізнесу, який за ним працює.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Довів до мультитенантної платформи <b>разом з Mykhailo Berelet</b> (інженерна реалізація): 12+ спеціалізованих агентів, 11-етапний конвеєр з гейтами якості, подвійне рев'ю, авто-відкат, provider-agnostic.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Виконує мою авторську методологію — <a href="needs-driven-development.html"><b>Needs-Driven Development</b></a>: усе починається від потреби.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Реальний вплив у <b>Comfy</b>: ~1 година від ідеї до merged PR, у 4–20× швидше; через неї збудовано ComfyAI (система підтримки з 5 агентів) і випущено адмінку, аналітику та фічі на сайті/в застосунку.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Представлено на <b>AWS Summit Warsaw 2026</b> — див. <a href="https://dou.ua/forums/topic/59758/" target="_blank" rel="noopener">розбір на DOU</a>.</span></div>
+      </div>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">Ідея та перша версія</span><span class="v"><b>Мої.</b> Я задумав AI Workflow і зробив першу робочу версію — AI-команду розробки на основі моєї методології Needs-Driven Development.</span></div>
+      <div class="row"><span class="k">Платформа</span><span class="v">Доведено до повноцінної інженерної платформи <b>разом з Mykhailo Berelet</b> (IT Director, Comfy), який представив її на AWS Summit Warsaw 2026.</span></div>
+      <p class="disclaimer">Продукт Comfy. Джерело: розбір на DOU (dou.ua/forums/topic/59758). Метрики наближені — з репозиторію проєкту та доповіді.</p>
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      function set(l) {
+        root.setAttribute('data-lang', l);
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set')); });
+      });
+    })();
+  </script>
+
+</div>
+</body>
+</html>
