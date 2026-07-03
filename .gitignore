@@ -1,0 +1,8 @@
+# исходники и приватное — не публикуем, лежат локально в папке проекта
+resume.html
+*.src.html
+presentation.html
+*.pdf
+1000000883.jpg
+2026-*.png
+.DS_Store
