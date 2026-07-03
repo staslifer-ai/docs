@@ -57,6 +57,14 @@
   .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
 
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
   .muted { color: var(--ink-2); }
 
   /* ---- Masthead ---- */
