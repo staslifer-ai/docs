@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>Needs-Driven Development — Methodology One-Pager</title>
+<meta name="description" content="An AI-native software development methodology and the multi-agent platform that operationalizes it. EN / UK.">
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 44ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Synthesis two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .list { display: flex; flex-direction: column; gap: 11px; list-style: none; padding: 0; margin: 0; }
+  .list li { display: grid; grid-template-columns: auto 1fr; gap: 11px; font-size: 15px; line-height: 1.45; }
+  .list li .src { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .tick { color: var(--accent); font-weight: 700; }
+  .dot { color: var(--ink-3); }
+  .list li b { font-weight: 600; }
+
+  /* ---- Lifecycle ---- */
+  .phase-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin: 22px 0 10px; }
+  .stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stage { background: var(--paper-2); border: 1px solid var(--line); padding: 14px 15px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .stage .num { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; }
+  .stage .name { font-weight: 600; font-size: 15px; }
+  .stage .desc { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 33px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 18px; color: var(--accent); }
+
+  /* ---- Principles ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Resume bullets ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .stages { grid-template-columns: 1fr 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>
+
+<div class="ndd" id="ndd-root" data-lang="en">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="en" class="active" aria-pressed="true">EN</button>
+      <button type="button" data-set="uk" aria-pressed="false">УКР</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <header class="masthead">
+      <span class="eyebrow">Software Development Methodology · Author's Framework</span>
+      <h1>Needs-Driven Development</h1>
+      <p class="lede">A methodology for building software <b>with AI agents</b> — where the unit of work is a user <b>need</b>, traced from a press release to shipped code, and enforced by an executable pipeline of specialized agents.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Discipline</div><div class="v">AI-native process<span class="sub">design + operationalization</span></div></div>
+        <div class="cell"><div class="k">Form</div><div class="v">Executable<span class="sub">not a document — running software</span></div></div>
+        <div class="cell"><div class="k">Status</div><div class="v">In production<span class="sub">applied on real products</span></div></div>
+        <div class="cell"><div class="k">Basis</div><div class="v">Synthesis<span class="sub">of established practices</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The idea in one line</span></div>
+      <p class="thesis">Most teams keep <span class="em">vision</span>, <span class="em">specification</span> and <span class="em">delivery discipline</span> in separate tools and separate heads. Needs-Driven Development fuses them into one traceable flow — and hands the whole flow to AI agents that are held to it by design.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">What is borrowed · what is original</span>
+        <h2>An honest breakdown</h2>
+        <p class="muted">The value is not a new principle — it is the synthesis and the fact that it <em>runs</em>. Stated plainly, because it should survive scrutiny.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Established building blocks</h3>
+          <p class="note">Deliberately adopted from the field — chosen and combined, not reinvented.</p>
+          <ul class="list">
+            <li><span class="dot">→</span><span><b>Working Backwards</b> — press release / PR-FAQ <span class="src">Amazon</span></span></li>
+            <li><span class="dot">→</span><span><b>Spec-driven development</b> — spec as source of truth <span class="src">AWS Kiro · GitHub spec-kit</span></span></li>
+            <li><span class="dot">→</span><span><b>C4 model</b> · <b>ADR</b> — architecture &amp; decisions</span></li>
+            <li><span class="dot">→</span><span><b>Definition of Ready / Done</b>, acceptance criteria <span class="src">Agile</span></span></li>
+            <li><span class="dot">→</span><span><b>RICE · YAGNI · KISS</b> — prioritization &amp; restraint</span></li>
+          </ul>
+        </div>
+        <div class="panel origin">
+          <h3>Original contribution</h3>
+          <p class="note">The synthesis, the AI-native discipline, and the operationalization.</p>
+          <ul class="list">
+            <li><span class="tick">✦</span><span><b>Needs-first lifecycle</b> — one flow from need to code; the work item is a <span class="src">NEED-XXX</span>, not a ticket</span></li>
+            <li><span class="tick">✦</span><span><b>Executable spec contract</b> — controlled-grammar requirements, acceptance criteria used as the end-to-end <b>test oracle</b></span></li>
+            <li><span class="tick">✦</span><span><b>AI discipline layer</b> — per-step self-check, alignment &amp; deviation control against the original need</span></li>
+            <li><span class="tick">✦</span><span><b>Operationalized</b> as a multi-agent platform with quality gates — the process is code, not guidance</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The lifecycle · 8 steps, 3 phases</span>
+        <h2>From need to shipped code</h2>
+      </div>
+      <div class="phase-label">Phase I — Requirements (Working Backwards)</div>
+      <div class="stages">
+        <div class="stage"><span class="num">01</span><span class="name">Draft</span><span class="desc">Problem + press release for a need not yet built.</span></div>
+        <div class="stage"><span class="num">02</span><span class="name">Analysis</span><span class="desc">Discovery Q&amp;A + autonomous codebase analysis.</span></div>
+        <div class="stage"><span class="num">03</span><span class="name">Spec</span><span class="desc">Acceptance criteria + full specification.</span></div>
+        <div class="stage"><span class="num">04</span><span class="name">Docs</span><span class="desc">Spec, API, C4, errors, tasks, tests — all authored.</span></div>
+      </div>
+      <div class="phase-label">Phase II — Implementation</div>
+      <div class="stages">
+        <div class="stage"><span class="num">05</span><span class="name">Pre-check</span><span class="desc">Blocking checklist before a line is written.</span></div>
+        <div class="stage"><span class="num">06</span><span class="name">Code + Tests</span><span class="desc">Vertical slices, backend-first, tests mandatory.</span></div>
+        <div class="stage"><span class="num">07</span><span class="name">Commit</span><span class="desc">One approval gate; one commit per need.</span></div>
+      </div>
+      <div class="phase-label">Phase III — Finalization</div>
+      <div class="stages">
+        <div class="stage"><span class="num">08</span><span class="name">Finalize</span><span class="desc">Sync docs, verify the result against the original need.</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Operationalized · the agent pipeline</span>
+        <h2>The methodology, running as software</h2>
+        <p class="muted">A graph state machine drives specialized AI agents through quality gates. Each stage passes named artifacts to the next; failures return to a specific node — not to the start.</p>
+      </div>
+      <div class="pipe-frame">
+        <div class="pipe-scroll">
+          <div class="pipe">
+            <span class="node">PM</span><span class="arrow">→</span>
+            <span class="node review">PM·REV</span><span class="arrow">→</span>
+            <span class="node">BA</span><span class="arrow">→</span>
+            <span class="node review">BA·REV</span><span class="arrow">→</span>
+            <span class="node">DESIGN</span><span class="arrow">→</span>
+            <span class="node">DEV</span><span class="arrow">→</span>
+            <span class="node review">DEV·REV</span><span class="arrow">→</span>
+            <span class="node">QA</span><span class="arrow">→</span>
+            <span class="node review">QA·REV</span><span class="arrow">→</span>
+            <span class="node">PERF</span><span class="arrow">→</span>
+            <span class="node commit">COMMIT</span>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="item"><span class="swatch"></span> Base agent — creates artifact</div>
+          <div class="item"><span class="swatch review"></span> Review agent — checks it against injected skills</div>
+          <div class="item"><span class="swatch commit"></span> Commit gate — passes only if all gates clear</div>
+          <div class="item"><span class="swatch return"></span> Auto-rollback — QA/PERF return to DEV</div>
+        </div>
+        <div class="pipe-notes">
+          <div class="pn"><h3>Double-pass review</h3><p>Every artifact is created by one agent, then audited and fixed by a second agent carrying pluggable quality skills (OWASP, FastAPI, React, performance).</p></div>
+          <div class="pn"><span class="tag">Contained rollback</span><h3 style="margin-top:4px;">Failures don't cascade</h3><p>A QA fail or a critical perf finding sends the task back to DEV only — localizing the blast radius instead of re-running discovery.</p></div>
+          <div class="pn"><h3>Full audit trail</h3><p>Every spec, wireframe, test result and diff is persisted and traceable back to the originating need.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The platform · AI Workflow</span>
+        <h2>Built, not proposed</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">~22<span class="u">K</span></div><div class="lab">lines of Python across the platform</div></div>
+        <div class="metric"><div class="fig">12<span class="u">+</span></div><div class="lab">specialized AI agent roles</div></div>
+        <div class="metric"><div class="fig">11</div><div class="lab">quality-gated pipeline stages</div></div>
+        <div class="metric"><div class="fig">18</div><div class="lab">tables · full multi-tenant data model</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">59<span class="u">+</span></div><div class="lab">needs shipped through the process</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">4</div><div class="lab">pipeline templates · visual editor</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">2</div><div class="lab">AI providers · provider-agnostic</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">2</div><div class="lab">real products built with it</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">SQLAlchemy 2.0 async</span>
+        <span class="chip">PostgreSQL · Alembic</span>
+        <span class="chip">JWT · RBAC</span>
+        <span class="chip">HTMX · Alpine · Drawflow</span>
+        <span class="chip">S3 artifacts</span>
+        <span class="chip">AWS Bedrock (Kiro)</span>
+        <span class="chip">Anthropic Claude</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Why it's defensible</span>
+        <h2>What makes it distinctive</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">A</span><div><h3>Requirements are executable</h3><p>Acceptance criteria are written as Given/When/Then and reused verbatim as the QA test oracle — not aspirational prose.</p></div></div>
+        <div class="principle"><span class="idx">B</span><div><h3>Architecture maps to code</h3><p>C4 diagrams carry a component-to-file table with NEW/EDIT markers, bridging design straight to implementation targets.</p></div></div>
+        <div class="principle"><span class="idx">C</span><div><h3>Value ships in vertical slices</h3><p>Work is decomposed into end-to-end increments with local acceptance criteria — each independently testable.</p></div></div>
+        <div class="principle"><span class="idx">D</span><div><h3>Discovery is a structured pipeline</h3><p>A four-stage funnel — interview, analysis, decomposition, confirmation — gated on a completeness checklist.</p></div></div>
+        <div class="principle"><span class="idx">E</span><div><h3>Quality rules are pluggable</h3><p>Best-practice skills are external, per-project modules injected at review stages — not hard-coded rules.</p></div></div>
+        <div class="principle"><span class="idx">F</span><div><h3>The AI is kept on-need</h3><p>Self-check and deviation control at every step guard against scope creep and drift from the original problem.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec resume">
+      <span class="eyebrow">Copy-ready</span>
+      <h2>Résumé bullets</h2>
+      <p class="sub">Phrased to be accurate and to hold up under technical questioning.</p>
+      <div class="bullets">
+        <div class="bullet"><span class="b">▸</span><span>Authored <b>Needs-Driven Development</b>, an AI-native software methodology synthesizing Amazon Working Backwards, spec-driven development and Agile quality gates into a single traceable flow from user need to shipped code.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Turned the methodology from a document into <b>running software</b>: an executable spec contract (controlled-grammar requirements, acceptance criteria as an end-to-end test oracle) plus an AI-discipline layer (per-step self-check, alignment &amp; deviation control).</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Co-founded and co-architected <b>AI Workflow</b> — a multi-tenant platform (~22K LOC, FastAPI/PostgreSQL) running 12+ specialized AI agents through an 11-stage quality-gated pipeline with double-pass review and automatic rollback.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Applied the framework on real products, including a 5-agent AI customer-service system, shipping <b>59+ needs</b> through the process with a full artifact audit trail.</span></div>
+      </div>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">Methodology</span><span class="v"><b>Sole author</b> — originated and documented the framework; authored the workflow spec and all agent role definitions.</span></div>
+      <div class="row"><span class="k">Platform</span><span class="v"><b>Co-founded &amp; co-architected</b> with Mykhailo Berelet — a joint engineering build of the AI Workflow system.</span></div>
+      <p class="disclaimer">Framing note: the contribution is the synthesis, the AI-native operationalization and the platform — not the underlying principles, which are credited to their originators. Metrics are drawn from the project's own repository and are approximate.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <header class="masthead">
+      <span class="eyebrow">Методологія розробки ПЗ · Авторський фреймворк</span>
+      <h1>Needs-Driven Development</h1>
+      <p class="lede">Методологія створення ПЗ <b>за допомогою AI-агентів</b> — де одиниця роботи це <b>потреба</b> користувача, простежена від пресрелізу до готового коду й забезпечена виконуваним конвеєром спеціалізованих агентів.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Дисципліна</div><div class="v">AI-native процес<span class="sub">дизайн + операціоналізація</span></div></div>
+        <div class="cell"><div class="k">Форма</div><div class="v">Виконувана<span class="sub">не документ — робоче ПЗ</span></div></div>
+        <div class="cell"><div class="k">Статус</div><div class="v">У продакшені<span class="sub">застосовано на реальних продуктах</span></div></div>
+        <div class="cell"><div class="k">Основа</div><div class="v">Синтез<span class="sub">визнаних практик</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Ідея в одному реченні</span></div>
+      <p class="thesis">Більшість команд тримають <span class="em">бачення</span>, <span class="em">специфікацію</span> та <span class="em">дисципліну доставки</span> в різних інструментах і різних головах. Needs-Driven Development зливає їх в один простежуваний потік — і передає весь потік AI-агентам, яких дизайн від початку утримує в його межах.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Що запозичено · що оригінальне</span>
+        <h2>Чесний розбір</h2>
+        <p class="muted">Цінність — не новий принцип, а синтез і те, що він <em>працює</em>. Сказано прямо, бо це має витримати прискіпливу перевірку.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Визнані будівельні блоки</h3>
+          <p class="note">Свідомо взяті з індустрії — обрані й поєднані, а не винайдені заново.</p>
+          <ul class="list">
+            <li><span class="dot">→</span><span><b>Working Backwards</b> — пресреліз / PR-FAQ <span class="src">Amazon</span></span></li>
+            <li><span class="dot">→</span><span><b>Spec-driven development</b> — специфікація як джерело правди <span class="src">AWS Kiro · GitHub spec-kit</span></span></li>
+            <li><span class="dot">→</span><span><b>Модель C4</b> · <b>ADR</b> — архітектура й рішення</span></li>
+            <li><span class="dot">→</span><span><b>Definition of Ready / Done</b>, критерії приймання <span class="src">Agile</span></span></li>
+            <li><span class="dot">→</span><span><b>RICE · YAGNI · KISS</b> — пріоритизація й стриманість</span></li>
+          </ul>
+        </div>
+        <div class="panel origin">
+          <h3>Оригінальний внесок</h3>
+          <p class="note">Синтез, AI-native дисципліна та операціоналізація.</p>
+          <ul class="list">
+            <li><span class="tick">✦</span><span><b>Потреба в центрі</b> — один потік від потреби до коду; одиниця роботи — <span class="src">NEED-XXX</span>, а не тікет</span></li>
+            <li><span class="tick">✦</span><span><b>Виконуваний контракт-специфікація</b> — вимоги з контрольованою граматикою, критерії приймання як наскрізний <b>тест-оракул</b></span></li>
+            <li><span class="tick">✦</span><span><b>Шар дисципліни ІІ</b> — самоперевірка на кожному кроці, контроль відповідності й відхилень від початкової потреби</span></li>
+            <li><span class="tick">✦</span><span><b>Операціоналізовано</b> як мультиагентну платформу з гейтами якості — процес є кодом, а не порадою</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Життєвий цикл · 8 кроків, 3 фази</span>
+        <h2>Від потреби до готового коду</h2>
+      </div>
+      <div class="phase-label">Фаза I — Вимоги (Working Backwards)</div>
+      <div class="stages">
+        <div class="stage"><span class="num">01</span><span class="name">Чернетка</span><span class="desc">Проблема + пресреліз для ще не створеної потреби.</span></div>
+        <div class="stage"><span class="num">02</span><span class="name">Аналіз</span><span class="desc">Discovery-питання + автономний аналіз кодової бази.</span></div>
+        <div class="stage"><span class="num">03</span><span class="name">Специфікація</span><span class="desc">Критерії приймання + повна специфікація.</span></div>
+        <div class="stage"><span class="num">04</span><span class="name">Документація</span><span class="desc">Spec, API, C4, помилки, задачі, тести — усе написано.</span></div>
+      </div>
+      <div class="phase-label">Фаза II — Реалізація</div>
+      <div class="stages">
+        <div class="stage"><span class="num">05</span><span class="name">Передперевірка</span><span class="desc">Блокуючий чек-лист перед першим рядком коду.</span></div>
+        <div class="stage"><span class="num">06</span><span class="name">Код + Тести</span><span class="desc">Вертикальні зрізи, backend-first, тести обов'язкові.</span></div>
+        <div class="stage"><span class="num">07</span><span class="name">Коміт</span><span class="desc">Один гейт апруву; один коміт на потребу.</span></div>
+      </div>
+      <div class="phase-label">Фаза III — Завершення</div>
+      <div class="stages">
+        <div class="stage"><span class="num">08</span><span class="name">Завершення</span><span class="desc">Синхронізація доків, звірка результату з початковою потребою.</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Операціоналізовано · конвеєр агентів</span>
+        <h2>Методологія, що працює як ПЗ</h2>
+        <p class="muted">Графова стейт-машина проводить спеціалізованих AI-агентів крізь гейти якості. Кожен етап передає іменовані артефакти далі; збої повертаються до конкретного вузла — не на початок.</p>
+      </div>
+      <div class="pipe-frame">
+        <div class="pipe-scroll">
+          <div class="pipe">
+            <span class="node">PM</span><span class="arrow">→</span>
+            <span class="node review">PM·REV</span><span class="arrow">→</span>
+            <span class="node">BA</span><span class="arrow">→</span>
+            <span class="node review">BA·REV</span><span class="arrow">→</span>
+            <span class="node">DESIGN</span><span class="arrow">→</span>
+            <span class="node">DEV</span><span class="arrow">→</span>
+            <span class="node review">DEV·REV</span><span class="arrow">→</span>
+            <span class="node">QA</span><span class="arrow">→</span>
+            <span class="node review">QA·REV</span><span class="arrow">→</span>
+            <span class="node">PERF</span><span class="arrow">→</span>
+            <span class="node commit">COMMIT</span>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="item"><span class="swatch"></span> Базовий агент — створює артефакт</div>
+          <div class="item"><span class="swatch review"></span> Агент-рев'ю — перевіряє за інʼєктованими skills</div>
+          <div class="item"><span class="swatch commit"></span> Гейт коміту — проходить лише якщо всі гейти чисті</div>
+          <div class="item"><span class="swatch return"></span> Авто-відкат — QA/PERF повертають до DEV</div>
+        </div>
+        <div class="pipe-notes">
+          <div class="pn"><h3>Подвійний прохід рев'ю</h3><p>Кожен артефакт створює один агент, потім його аудитує і виправляє другий агент з підключними skills якості (OWASP, FastAPI, React, продуктивність).</p></div>
+          <div class="pn"><span class="tag">Локалізований відкат</span><h3 style="margin-top:4px;">Збої не каскадять</h3><p>Фейл QA чи критична знахідка perf повертають задачу лише до DEV — локалізуючи наслідки замість повторного discovery.</p></div>
+          <div class="pn"><h3>Повний аудит-слід</h3><p>Кожна специфікація, wireframe, результат тесту й diff зберігаються і простежуються до початкової потреби.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Платформа · AI Workflow</span>
+        <h2>Побудовано, а не запропоновано</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">~22<span class="u">K</span></div><div class="lab">рядків Python у платформі</div></div>
+        <div class="metric"><div class="fig">12<span class="u">+</span></div><div class="lab">ролей спеціалізованих AI-агентів</div></div>
+        <div class="metric"><div class="fig">11</div><div class="lab">етапів конвеєра з гейтами якості</div></div>
+        <div class="metric"><div class="fig">18</div><div class="lab">таблиць · повна мультитенантна модель даних</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">59<span class="u">+</span></div><div class="lab">потреб проведено крізь процес</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">4</div><div class="lab">шаблони конвеєра · візуальний редактор</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">2</div><div class="lab">AI-провайдери · незалежність від провайдера</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">2</div><div class="lab">реальні продукти, створені з нею</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">SQLAlchemy 2.0 async</span>
+        <span class="chip">PostgreSQL · Alembic</span>
+        <span class="chip">JWT · RBAC</span>
+        <span class="chip">HTMX · Alpine · Drawflow</span>
+        <span class="chip">S3 артефакти</span>
+        <span class="chip">AWS Bedrock (Kiro)</span>
+        <span class="chip">Anthropic Claude</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Чому це захищувано</span>
+        <h2>Що робить її особливою</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">A</span><div><h3>Вимоги є виконуваними</h3><p>Критерії приймання пишуться як Дано/Коли/Тоді й дослівно використовуються як тест-оракул QA — а не як побажання.</p></div></div>
+        <div class="principle"><span class="idx">B</span><div><h3>Архітектура мапиться на код</h3><p>Діаграми C4 містять таблицю компонент→файл з маркерами NEW/EDIT, ведучи від дизайну прямо до цілей реалізації.</p></div></div>
+        <div class="principle"><span class="idx">C</span><div><h3>Цінність постачається зрізами</h3><p>Роботу розбито на наскрізні інкременти з локальними критеріями приймання — кожен тестовний окремо.</p></div></div>
+        <div class="principle"><span class="idx">D</span><div><h3>Discovery — структурований конвеєр</h3><p>Чотириетапна воронка — інтервʼю, аналіз, декомпозиція, підтвердження — з гейтом на чек-листі повноти.</p></div></div>
+        <div class="principle"><span class="idx">E</span><div><h3>Правила якості підключні</h3><p>Skills з найкращими практиками — зовнішні модулі на рівні проєкту, інʼєктовані на етапах рев'ю, а не захардкоджені правила.</p></div></div>
+        <div class="principle"><span class="idx">F</span><div><h3>ІІ утримується на потребі</h3><p>Самоперевірка й контроль відхилень на кожному кроці захищають від розповзання скоупу й дрейфу від початкової проблеми.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec resume">
+      <span class="eyebrow">Готово до вставки</span>
+      <h2>Пункти для резюме</h2>
+      <p class="sub">Сформульовано точно й так, щоб витримати технічні запитання.</p>
+      <div class="bullets">
+        <div class="bullet"><span class="b">▸</span><span>Автор <b>Needs-Driven Development</b> — AI-native методології розробки ПЗ, що синтезує Amazon Working Backwards, spec-driven development і Agile-гейти якості в єдиний простежуваний потік від потреби користувача до готового коду.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Перетворив методологію з документа на <b>робоче ПЗ</b>: виконуваний контракт-специфікація (вимоги з контрольованою граматикою, критерії приймання як наскрізний тест-оракул) плюс шар дисципліни ІІ (самоперевірка на кожному кроці, контроль відповідності й відхилень).</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Співзаснував і співспроєктував <b>AI Workflow</b> — мультитенантну платформу (~22K рядків, FastAPI/PostgreSQL), що проводить 12+ спеціалізованих AI-агентів крізь 11-етапний конвеєр з гейтами якості, подвійним рев'ю й автоматичним відкатом.</span></div>
+        <div class="bullet"><span class="b">▸</span><span>Застосував фреймворк на реальних продуктах, зокрема на системі клієнтського сервісу з 5 AI-агентів, провівши <b>59+ потреб</b> крізь процес із повним аудит-слідом артефактів.</span></div>
+      </div>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">Методологія</span><span class="v"><b>Одноосібний автор</b> — створив і задокументував фреймворк; написав специфікацію воркфлоу та всі визначення ролей агентів.</span></div>
+      <div class="row"><span class="k">Платформа</span><span class="v"><b>Співзасновано й співспроєктовано</b> з Mykhailo Berelet — спільна інженерна розробка системи AI Workflow.</span></div>
+      <p class="disclaimer">Примітка щодо формулювань: внесок — це синтез, AI-native операціоналізація й платформа, а не самі принципи, які належать їхнім авторам. Метрики взято з репозиторію проєкту і є наближеними.</p>
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      function set(l) {
+        root.setAttribute('data-lang', l);
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set')); });
+      });
+    })();
+  </script>
+
+</div>
+</body>
+</html>
