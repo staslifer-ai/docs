@@ -578,20 +578,25 @@
     (function () {
       var root = document.getElementById('ndd-root');
       var btns = document.querySelectorAll('.lang-toggle button');
-      function set(l) {
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
         root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
         btns.forEach(function (b) {
           var on = b.getAttribute('data-set') === l;
           b.classList.toggle('active', on);
           b.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
       }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
       btns.forEach(function (b) {
-        b.addEventListener('click', function () { set(b.getAttribute('data-set')); });
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
       });
     })();
   </script>
 
 </div>
-</body>
-</html>
+</body></html>

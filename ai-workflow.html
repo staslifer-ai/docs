@@ -276,7 +276,7 @@
         <h2>Capabilities</h2>
       </div>
       <div class="principles">
-        <div class="principle"><span class="idx">A</span><div><h3>Provider-agnostic</h3><p>Runs on Claude Code, Kiro CLI or Codex CLI — choose the model per project, no lock-in.</p></div></div>
+        <div class="principle"><span class="idx">A</span><div><h3>Provider-agnostic</h3><p>Runs on Claude Code or Kiro CLI — choose the model per project, no lock-in.</p></div></div>
         <div class="principle"><span class="idx">B</span><div><h3>Double-pass review</h3><p>Every artifact is created by one agent, then audited by a review agent for security, performance, API testing and business requirements.</p></div></div>
         <div class="principle"><span class="idx">C</span><div><h3>Contained auto-rollback</h3><p>A QA fail or a critical performance finding returns the task to DEV — not to the start of the pipeline.</p></div></div>
         <div class="principle"><span class="idx">D</span><div><h3>Full audit trail</h3><p>Specs, wireframes, code reviews and test results are persisted per task and stay traceable.</p></div></div>
@@ -298,7 +298,7 @@
         <div class="metric" style="border-bottom:none;"><div class="fig">~22<span class="u">K</span></div><div class="lab">lines of Python</div></div>
         <div class="metric" style="border-bottom:none;"><div class="fig">18</div><div class="lab">tables · multi-tenant model</div></div>
         <div class="metric" style="border-bottom:none;"><div class="fig">4</div><div class="lab">pipeline templates · visual editor</div></div>
-        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">3</div><div class="lab">AI providers · Claude · Kiro · Codex</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">2</div><div class="lab">AI providers · Claude · Kiro</div></div>
       </div>
       <div class="stack" style="margin-top:18px;">
         <span class="chip">Python 3.12</span>
@@ -308,7 +308,7 @@
         <span class="chip">JWT · RBAC</span>
         <span class="chip">HTMX · Alpine · Drawflow</span>
         <span class="chip">S3 artifacts · tmux</span>
-        <span class="chip">Claude · Kiro · Codex CLI</span>
+        <span class="chip">Claude · Kiro CLI</span>
         <span class="chip">Jira</span>
       </div>
       <figure class="summit">
@@ -428,7 +428,7 @@
         <h2>Можливості</h2>
       </div>
       <div class="principles">
-        <div class="principle"><span class="idx">A</span><div><h3>Provider-agnostic</h3><p>Працює на Claude Code, Kiro CLI або Codex CLI — модель обирається під проєкт, без lock-in.</p></div></div>
+        <div class="principle"><span class="idx">A</span><div><h3>Provider-agnostic</h3><p>Працює на Claude Code або Kiro CLI — модель обирається під проєкт, без lock-in.</p></div></div>
         <div class="principle"><span class="idx">B</span><div><h3>Подвійний прохід рев'ю</h3><p>Кожен артефакт створює один агент, потім review-агент аудитує його на security, performance, API testing та бізнес-вимоги.</p></div></div>
         <div class="principle"><span class="idx">C</span><div><h3>Локалізований авто-відкат</h3><p>Фейл QA чи критична знахідка performance повертає задачу до DEV — а не на початок пайплайну.</p></div></div>
         <div class="principle"><span class="idx">D</span><div><h3>Повний аудит-слід</h3><p>Специфікації, wireframes, code review та результати тестів зберігаються по кожній задачі й лишаються простежуваними.</p></div></div>
@@ -450,7 +450,7 @@
         <div class="metric" style="border-bottom:none;"><div class="fig">~22<span class="u">K</span></div><div class="lab">рядків Python</div></div>
         <div class="metric" style="border-bottom:none;"><div class="fig">18</div><div class="lab">таблиць · мультитенантна модель</div></div>
         <div class="metric" style="border-bottom:none;"><div class="fig">4</div><div class="lab">шаблони конвеєра · візуальний редактор</div></div>
-        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">3</div><div class="lab">AI-провайдери · Claude · Kiro · Codex</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">2</div><div class="lab">AI-провайдери · Claude · Kiro</div></div>
       </div>
       <div class="stack" style="margin-top:18px;">
         <span class="chip">Python 3.12</span>
@@ -460,7 +460,7 @@
         <span class="chip">JWT · RBAC</span>
         <span class="chip">HTMX · Alpine · Drawflow</span>
         <span class="chip">S3 артефакти · tmux</span>
-        <span class="chip">Claude · Kiro · Codex CLI</span>
+        <span class="chip">Claude · Kiro CLI</span>
         <span class="chip">Jira</span>
       </div>
       <figure class="summit">
@@ -505,20 +505,25 @@
     (function () {
       var root = document.getElementById('ndd-root');
       var btns = document.querySelectorAll('.lang-toggle button');
-      function set(l) {
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
         root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
         btns.forEach(function (b) {
           var on = b.getAttribute('data-set') === l;
           b.classList.toggle('active', on);
           b.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
       }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
       btns.forEach(function (b) {
-        b.addEventListener('click', function () { set(b.getAttribute('data-set')); });
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
       });
     })();
   </script>
 
 </div>
-</body>
-</html>
+</body></html>
