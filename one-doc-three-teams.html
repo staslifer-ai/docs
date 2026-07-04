@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Один документ на три команди — продуктовий шаблон BA · Станіслав Ліфер</title>
+<meta name="description" content="Уніфікований продуктовий шаблон документації BA (потреба → гіпотеза → метрики → вимоги → process flow → API) і модель одного owner-документа на кілька команд. Кейс «Повернення коштів» у Comfy.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Один документ на три команди — продуктовий шаблон BA">
+<meta property="og:description" content="Продуктовий шаблон документації BA + модель крос-командного ownership. Кейс «Повернення коштів»: 3 команди, один owner-документ. Comfy.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/one-doc-three-teams.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<title>Один документ на три команди — продуктовий шаблон BA — Станіслав Ліфер</title>
+<meta name="description" content="Уніфікований продуктовий шаблон документації BA (потреба → гіпотеза → метрики → вимоги → process flow → API) і модель одного owner-документа на кілька команд. Кейс «Повернення коштів» у Comfy. UA / EN.">
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">BA Practice · Comfy</span>
+      <h1>One doc for three teams</h1>
+      <p class="lede">How I unified BA documentation around <b>business value</b> — one product-first template, one owner per feature, one source of truth — and proved it on a refund feature that spanned <b>three teams</b>.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Role</div><div class="v">Owner-BA<span class="sub">requirements &amp; process owner</span></div></div>
+        <div class="cell"><div class="k">Approach</div><div class="v">Product-first doc<span class="sub">need → metrics → API</span></div></div>
+        <div class="cell"><div class="k">Case</div><div class="v">Refunds<span class="sub">3 teams · 1 FE · 10 BE</span></div></div>
+        <div class="cell"><div class="k">Result</div><div class="v">One source of truth<span class="sub">less rework, shared understanding</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The problem</span><h2>Docs lived in silos</h2></div>
+      <p class="thesis">There was <span class="em">no shared BA template</span> — each team documented inside its own product, in its own format. Some didn't document at all.</p>
+      <div class="principles" style="margin-top:24px">
+        <div class="principle"><span class="idx">—</span><div><h3>Scattered</h3><p>Feature and business-value info sat in different spaces; hard to read across teams.</p></div></div>
+        <div class="principle"><span class="idx">—</span><div><h3>Stale</h3><p>Out-of-date information piled up, with no single place that was authoritative.</p></div></div>
+        <div class="principle"><span class="idx">—</span><div><h3>Broken telephone</h3><p>More cross-team communication meant more distortion — and requirements often went uncaptured.</p></div></div>
+        <div class="principle"><span class="idx">—</span><div><h3>Duplicated</h3><p>The same information was rewritten per team, and edited again whenever a neighbour changed theirs.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The template</span><h2>A product-first template</h2><p class="muted">Instead of a system-analysis dump, the doc captures why we build a thing and how we'll know it worked.</p></div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h3>Need</h3><p>The real user or business problem — why we're doing this at all.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h3>Hypothesis</h3><p>The assumed solution and expected effect — a basis to verify against.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h3>Metrics</h3><p>Concrete numbers — the success criteria that show whether the feature hit its goal.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h3>Requirements</h3><p>Business rules, functional and non-functional requirements.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h3>Process flow</h3><p>A BPMN diagram — how it all works at the system level.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h3>API</h3><p>Links to swagger, request examples, service endpoints.</p></div></div>
+      </div>
+      <p class="muted" style="margin-top:18px;font-size:14px">It ensures completeness, creates a shared understanding of the task, lowers the chance of building the wrong thing — and it's <b>fast to produce with our AI tools</b> (<a href="ba-ai-toolkit.html">the transcriptor + GPT toolchain</a>).</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">How teams use it</span><h2>One doc, one owner</h2></div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>The owner team</h3>
+          <p class="big">Each feature has <b>one main document</b>. The BA on the owner team owns its requirements and business rules — the single source of truth.</p>
+        </div>
+        <div class="panel">
+          <h3>Everyone else</h3>
+          <p class="big">Other teams fill in their parts high-level and keep implementation detail in <b>separate linked docs</b> referenced from the main one — so no one edits anyone else's page.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The proof</span><h2>Refunds: three teams, one owner</h2></div>
+      <p>A hard feature that touched three teams at once. Another team first tried to build the process and couldn't drive it to a result — I took it on as BA, designed the full end-to-end refund flow, and <b>defended it before Comfy's chief accountant</b> — not a PO — while coordinating three teams as the single owner of docs and requirements.</p>
+      <div class="metrics" style="margin-top:22px">
+        <div class="metric"><div class="fig">3</div><div class="lab">teams coordinated</div></div>
+        <div class="metric"><div class="fig">1</div><div class="lab">FE client</div></div>
+        <div class="metric"><div class="fig">10</div><div class="lab">BE requests / endpoints</div></div>
+        <div class="metric"><div class="fig">1</div><div class="lab">owner-BA — the doc</div></div>
+      </div>
+      <p class="thesis" style="margin-top:26px">"Honestly, I don't know who could have helped with this better than you, Stanislav."</p>
+      <p class="muted" style="margin-top:10px;font-size:14px">— Iryna Fesenko, Support · Refunds</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Feedback</span><h2>What colleagues said</h2></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Anna Kotsar · BA, EDI</h3>
+          <p class="big">"One doc for three teams — no duplication; everyone references a shared source. Questions are fixed in one place, and I don't have to edit my docs when others change theirs."</p>
+        </div>
+        <div class="panel">
+          <h3>DEV &amp; QA</h3>
+          <p class="big">"The requirements and the main flow are clear, and links to other teams' tasks are very convenient."</p>
+          <p class="note">Fair point: cross-system parameter names sometimes make the implementation path harder to trace.</p>
+        </div>
+        <div class="panel">
+          <h3>Artur Ivanov · BI</h3>
+          <p class="big">"The right idea — evaluate every feature and account for the metrics it moves. A concrete step toward data-driven decisions."</p>
+        </div>
+        <div class="panel">
+          <h3>Vitalii Bunetsky · PO, UCP</h3>
+          <p class="big">"Good template and approach — we'd run a similar initiative: Problem / Solution / Expected business outcome / Success criteria / Damage control / User stories."</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The payoff</span><h2>One source of truth</h2></div>
+      <div class="principles">
+        <div class="principle"><span class="idx">✓</span><div><h3>Faster to find</h3><p>Information lives in one place; less stale content accumulates.</p></div></div>
+        <div class="principle"><span class="idx">✓</span><div><h3>Shared understanding</h3><p>One reading of the business value across every team.</p></div></div>
+        <div class="principle"><span class="idx">✓</span><div><h3>Less broken telephone</h3><p>Fewer hand-offs and re-explanations between teams.</p></div></div>
+        <div class="principle"><span class="idx">✓</span><div><h3>Less time on docs</h3><p>Communication and documentation overhead both go down.</p></div></div>
+      </div>
+      <p class="muted" style="margin-top:18px;font-size:14px">Repeated on a second cross-team feature — the <b>bonus marathon</b> progress bar: 3 teams (Mobile · Campaign · UCP), 7 BA artifacts, one owner doc, one shared <b>BONUS_MARATHON</b> API contract.</p>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">What it is</span><span class="v">A <b>product-first BA documentation template</b> plus a cross-team ownership model — one owner doc as the single source of truth.</span></div>
+      <div class="row"><span class="k">Built at</span><span class="v"><b>Comfy.</b> Owner-BA on the featured cases — mine. Part of the same BA-speed initiative as the <a href="ba-ai-toolkit.html">AI toolchain</a> that drafts these artifacts.</span></div>
+      <p class="disclaimer">Feedback quotes are from Comfy colleagues who reviewed the approach. A Comfy internal initiative.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Практика BA · Comfy</span>
+      <h1>Один документ на три команди</h1>
+      <p class="lede">Як я уніфікував документацію BA навколо <b>бізнес-цінності</b> — один продуктовий шаблон, один owner на фічу, одне джерело правди — і довів це на фічі повернення коштів, що зачепила <b>три команди</b>.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Роль</div><div class="v">Owner-BA<span class="sub">owner вимог і процесу</span></div></div>
+        <div class="cell"><div class="k">Підхід</div><div class="v">Продуктовий шаблон<span class="sub">потреба → метрики → API</span></div></div>
+        <div class="cell"><div class="k">Кейс</div><div class="v">Повернення коштів<span class="sub">3 команди · 1 FE · 10 BE</span></div></div>
+        <div class="cell"><div class="k">Результат</div><div class="v">Одне джерело правди<span class="sub">менше переробок, спільне розуміння</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Проблема</span><h2>Документація жила в силосах</h2></div>
+      <p class="thesis">Не було <span class="em">спільного шаблону BA</span> — кожна команда документувала в межах свого продукту, за власним форматом. Хтось не документував узагалі.</p>
+      <div class="principles" style="margin-top:24px">
+        <div class="principle"><span class="idx">—</span><div><h3>Розпорошено</h3><p>Інформація про фічі та БЦ лежала в різних місцях; складно читати документацію інших команд.</p></div></div>
+        <div class="principle"><span class="idx">—</span><div><h3>Застаріває</h3><p>Накопичувалася неактуальна інформація, без єдиного джерела, якому можна довіряти.</p></div></div>
+        <div class="principle"><span class="idx">—</span><div><h3>«Зіпсований телефон»</h3><p>Більше комунікацій між командами — більше спотворень, а вимоги часто не фіксувалися.</p></div></div>
+        <div class="principle"><span class="idx">—</span><div><h3>Дублювання</h3><p>Ту саму інформацію переписували в кожній команді і правили знову, щойно сусіди щось змінювали.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Шаблон</span><h2>Продуктовий шаблон</h2><p class="muted">Замість вивантаження системного аналізу документ фіксує, навіщо ми це робимо і як зрозуміємо, що спрацювало.</p></div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h3>Потреба</h3><p>Реальна проблема користувача чи бізнесу — навіщо це взагалі робимо.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h3>Гіпотеза</h3><p>Припущення про рішення та очікуваний ефект — фундамент для перевірки.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h3>Метрики</h3><p>Конкретні числа — критерії успіху, що показують, чи досягла фіча цілі.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h3>Вимоги</h3><p>Бізнес-правила, функціональні та нефункціональні вимоги.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h3>Process flow</h3><p>BPMN-схема — як усе працює на рівні системи.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h3>API</h3><p>Посилання на swagger, приклади запитів, ендпоїнти сервісів.</p></div></div>
+      </div>
+      <p class="muted" style="margin-top:18px;font-size:14px">Забезпечує повноту вимог, створює єдине розуміння задачі, знижує ймовірність зробити не те — і <b>швидко створюється нашими AI-інструментами</b> (<a href="ba-ai-toolkit.html">тулчейн транскриптор + GPT</a>).</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Як команди це використовують</span><h2>Один документ, один owner</h2></div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>Команда-owner</h3>
+          <p class="big">Кожна фіча має <b>один головний документ</b>. BA команди-owner володіє його вимогами та бізнес-правилами — це єдине джерело правди.</p>
+        </div>
+        <div class="panel">
+          <h3>Усі інші</h3>
+          <p class="big">Інші команди наповнюють свої частини високорівнево, а деталі реалізації тримають в <b>окремих документах</b> із посиланнями з головного — тож ніхто не редагує чужу сторінку.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Доказ</span><h2>Повернення коштів: три команди, один owner</h2></div>
+      <p>Складна фіча, що зачепила три команди одночасно. Спершу процес намагалась побудувати інша команда і не змогла довести до результату — я взяв його на себе як BA, спроектував повний end-to-end процес повернення коштів і <b>захистив його перед головним бухгалтером Comfy</b> — не перед PO — координуючи три команди як єдиний owner документації та вимог.</p>
+      <div class="metrics" style="margin-top:22px">
+        <div class="metric"><div class="fig">3</div><div class="lab">команди скоординовано</div></div>
+        <div class="metric"><div class="fig">1</div><div class="lab">FE-клієнт</div></div>
+        <div class="metric"><div class="fig">10</div><div class="lab">BE-запитів / ендпоїнтів</div></div>
+        <div class="metric"><div class="fig">1</div><div class="lab">owner-BA — документ</div></div>
+      </div>
+      <p class="thesis" style="margin-top:26px">«Якщо чесно, я не знаю, хто міг би краще за вас, Станіславе, допомогти з цим питанням».</p>
+      <p class="muted" style="margin-top:10px;font-size:14px">— Ірина Фесенко, Support · Повернення коштів</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Фідбек</span><h2>Що сказали колеги</h2></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Анна Коцар · BA, EDI</h3>
+          <p class="big">«Одна дока на три команди — без дублювання; кожен посилається на спільне джерело. Питання зафіксовані в одному місці, і не треба редагувати свою документацію, коли інші змінюють свою».</p>
+        </div>
+        <div class="panel">
+          <h3>DEV &amp; QA</h3>
+          <p class="big">«Суть вимог і основний флоу зрозумілі, а посилання на задачі інших команд — дуже зручно».</p>
+          <p class="note">Справедливо: назви параметрів з інших систем іноді ускладнюють пошук шляху реалізації.</p>
+        </div>
+        <div class="panel">
+          <h3>Артур Іванов · BI</h3>
+          <p class="big">«Правильна ідея — оцінювати кожну фічу й одразу враховувати метрики, на які вона впливає. Крок до рішень на основі даних».</p>
+        </div>
+        <div class="panel">
+          <h3>Віталій Бунецький · PO, UCP</h3>
+          <p class="big">«Гарний шаблон і підхід — у нас була схожа ініціатива: Problem / Solution / Expected business outcome / Success criteria / Damage control / User stories».</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Ефект</span><h2>Одне джерело правди</h2></div>
+      <div class="principles">
+        <div class="principle"><span class="idx">✓</span><div><h3>Швидше знайти</h3><p>Інформація в одному місці; менше накопичується застарілого.</p></div></div>
+        <div class="principle"><span class="idx">✓</span><div><h3>Спільне розуміння</h3><p>Єдине прочитання бізнес-цінності в усіх команд.</p></div></div>
+        <div class="principle"><span class="idx">✓</span><div><h3>Менше «телефону»</h3><p>Менше передач і повторних пояснень між командами.</p></div></div>
+        <div class="principle"><span class="idx">✓</span><div><h3>Менше часу на доку</h3><p>Знижуються і комунікації, і час на документацію.</p></div></div>
+      </div>
+      <p class="muted" style="margin-top:18px;font-size:14px">Повторено на другій крос-командній фічі — прогрес-бар <b>марафону бонусів</b>: 3 команди (Mobile · Campaign · UCP), 7 артефактів BA, один owner-документ, спільний API-контракт <b>BONUS_MARATHON</b>.</p>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">Що це</span><span class="v"><b>Продуктовий шаблон документації BA</b> плюс модель крос-командного ownership — один owner-документ як єдине джерело правди.</span></div>
+      <div class="row"><span class="k">Створено в</span><span class="v"><b>Comfy.</b> Owner-BA на описаних кейсах — я. Частина тієї ж ініціативи зі швидкості BA, що й <a href="ba-ai-toolkit.html">AI-тулчейн</a>, який готує ці артефакти.</span></div>
+      <p class="disclaimer">Цитати фідбеку — від колег Comfy, які переглядали підхід. Внутрішня ініціатива Comfy.</p>
+    </div>
+
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
+        root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
+      }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
+      });
+    })();
+  </script>
+
+</div>
+</body></html>
