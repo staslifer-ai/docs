@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Від аудіо зустрічі до артефактів BA — AI-тулчейн · Станіслав Ліфер</title>
+<meta name="description" content="Whisper + кастомний GPT-агент: з транскрипції зустрічі — BRD/SRS/User Stories/BPMN. −85% часу на документацію вимог. Створено в Comfy.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Від аудіо зустрічі до артефактів BA — AI-тулчейн для BA">
+<meta property="og:description" content="Whisper + кастомний GPT-агент: з транскрипції — BRD/SRS/User Stories/BPMN. −85% часу на документацію. Створено в Comfy.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/ba-ai-toolkit.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<title>Від аудіо зустрічі до артефактів BA — AI-тулчейн для бізнес-аналізу</title>
+<meta name="description" content="Whisper + кастомний GPT-агент, що з транскрипції зустрічі роблять BRD/SRS/User Stories/BPMN — −85% часу на документацію вимог. Створено в Comfy. UA / EN.">
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">BA Automation · Comfy</span>
+      <h1>From meeting audio to BA artifacts</h1>
+      <p class="lede">Two AI tools I designed and shipped at <b>Comfy</b> to move business analysis from a manual, system-analysis grind to a <b>product-first, measurable</b> flow — cutting time on requirements documentation by <b>85%</b>.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Role</div><div class="v">Design + build<span class="sub">BA → AI, end-to-end</span></div></div>
+        <div class="cell"><div class="k">Stack</div><div class="v">Whisper · GPT<span class="sub">Python, FFmpeg, Gradio, self-hosted</span></div></div>
+        <div class="cell"><div class="k">Result</div><div class="v">−85% time<span class="sub">163 h → 25 h across 22 features</span></div></div>
+        <div class="cell"><div class="k">Status</div><div class="v">In production<span class="sub">used by the BA team</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The problem</span><h2>BA work was slow and detached from value</h2></div>
+      <p class="thesis">Business analysis ran on a <span class="em">project mindset</span> — "ship feature A by date B" — heavy on system analysis, with <span class="em">no AI in the loop</span>.</p>
+      <div class="cols2" style="margin-top:24px">
+        <div class="panel">
+          <h3>What we had</h3>
+          <p class="big">Clear tasks, predictable delivery, detailed technical docs, a solid grasp of architecture.</p>
+        </div>
+        <div class="panel origin">
+          <h3>What it cost</h3>
+          <p class="big">Weak focus on <b>business requirements</b>, drift from real customer needs and metrics, and <b>a lot of hours</b> — on the BA work and, downstream, on development.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The toolchain</span><h2>Two tools, one flow</h2><p class="muted">The fix wasn't "add AI" for its own sake — each tool has a clear role and a measurable impact on speed and quality.</p></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>01 · Transcriptor</h3>
+          <p class="big">A tool that automatically transcribes meeting audio, so requirements and agreements are captured as they're spoken — the raw base for every BA artifact.</p>
+          <p class="note">Self-hosted on our own server for confidential data. <b>Whisper</b> for speech-to-text — multilingual, <b>no token limits, no subscription.</b></p>
+          <div class="stack"><span class="chip">Python</span><span class="chip">Whisper</span><span class="chip">FFmpeg</span><span class="chip">Gradio</span><span class="chip">Self-hosted</span></div>
+        </div>
+        <div class="panel">
+          <h3>02 · Comfy BA GPT</h3>
+          <p class="big">A custom GPT agent with my own instructions that turns a transcript into structured BA artifacts — <b>BRD, SRS, User Stories, BPMN.</b></p>
+          <p class="note">Command-driven (/create_brd, /describe_need), answers in <b>summary / draft / detailed</b>, and asks clarifying questions when data is missing. Works over meetings, images and tables.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">How it works</span><h2>Initiative to artifact</h2></div>
+      <div class="pipe-frame">
+        <div class="pipe-scroll">
+          <div class="pipe">
+            <div class="node">Initiative</div><div class="arrow">&rarr;</div>
+            <div class="node">BA task</div><div class="arrow">&rarr;</div>
+            <div class="node">Gather requirements</div><div class="arrow">&rarr;</div>
+            <div class="node review">Transcriptor</div><div class="arrow">&rarr;</div>
+            <div class="node">Transcript</div><div class="arrow">&rarr;</div>
+            <div class="node review">BA GPT agent</div><div class="arrow">&rarr;</div>
+            <div class="node">Artifacts</div><div class="arrow">&rarr;</div>
+            <div class="node commit">Iterate &amp; verify</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="item"><span class="swatch review"></span> AI-tool step</div>
+          <div class="item"><span class="swatch commit"></span> Human-in-the-loop check</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The result</span><h2>&minus;85% time on documentation</h2></div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">163<span class="u">h</span></div><div class="lab">expert estimate — 4 BAs, 22 features</div></div>
+        <div class="metric"><div class="fig">25<span class="u">h</span></div><div class="lab">actual, with the AI toolchain</div></div>
+        <div class="metric"><div class="fig">&minus;85<span class="u">%</span></div><div class="lab">time on requirements docs</div></div>
+        <div class="metric"><div class="fig">138<span class="u">h</span></div><div class="lab">saved — ≈34.5 h per BA</div></div>
+      </div>
+      <p class="muted" style="margin-top:16px;font-size:14px">Measured across 4 business analysts and 22 real features. Speed <b>and</b> quality — the point wasn't just to go faster, but to free BA time for business value, metrics and hypotheses.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">What came next</span><h2>Where this led</h2></div>
+      <div class="principles">
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>Longer meetings</h3><p>Handling audio over an hour (Whisper splits and concatenates), recording straight from the call, a shared knowledge base for the agent.</p></div></div>
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>Unified artifacts</h3><p>One product-first documentation template across teams — need, hypothesis, metrics, requirements. (A story of its own.)</p></div></div>
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>Text AI instructions</h3><p>The next step: spec-first instructions that let AI write production code — the first version of a workflow, before agents.</p></div></div>
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>AI Workflow</h3><p>Which eventually grew into a full multi-agent platform. <a href="ai-workflow.html">Read the AI Workflow story &rarr;</a></p></div></div>
+      </div>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">What it is</span><span class="v">Two AI tools for business analysis — a self-hosted meeting <b>transcriptor</b> and a <b>custom GPT agent</b> that drafts BA artifacts.</span></div>
+      <div class="row"><span class="k">Built at</span><span class="v"><b>Comfy.</b> Tools implemented together with <b>Mykhailo Berelet</b>; approach, agent instructions and rollout — mine.</span></div>
+      <p class="disclaimer">Metrics are from an internal evaluation across 4 BAs and 22 features (expert estimate vs. actual). A Comfy internal initiative.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Автоматизація BA · Comfy</span>
+      <h1>Від аудіо зустрічі до артефактів BA</h1>
+      <p class="lede">Два AI-інструменти, які я спроектував і впровадив у <b>Comfy</b>, щоб перевести бізнес-аналіз із ручної роботи над системним аналізом у <b>продуктовий, вимірюваний</b> процес — і скоротити час на документування вимог на <b>85%</b>.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Роль</div><div class="v">Проєктування + реалізація<span class="sub">BA → AI, end-to-end</span></div></div>
+        <div class="cell"><div class="k">Стек</div><div class="v">Whisper · GPT<span class="sub">Python, FFmpeg, Gradio, self-hosted</span></div></div>
+        <div class="cell"><div class="k">Результат</div><div class="v">−85% часу<span class="sub">163 год → 25 год на 22 фічах</span></div></div>
+        <div class="cell"><div class="k">Статус</div><div class="v">У проді<span class="sub">використовує команда BA</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Проблема</span><h2>Робота BA була повільною і відірваною від цінності</h2></div>
+      <p class="thesis">Бізнес-аналіз працював за <span class="em">проєктним підходом</span> — «зробити фічу А до дати Б» — з фокусом на системному аналізі та <span class="em">без AI у процесі</span>.</p>
+      <div class="cols2" style="margin-top:24px">
+        <div class="panel">
+          <h3>Що було</h3>
+          <p class="big">Більша чіткість задач, прогнозованість розробки, детальна технічна документація, розуміння архітектури.</p>
+        </div>
+        <div class="panel origin">
+          <h3>Чого це коштувало</h3>
+          <p class="big">Слабкий фокус на <b>бізнес-вимогах</b>, відрив від реальних потреб клієнта та метрик, і <b>багато годин</b> — на роботу BA і, далі, на розробку.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Тулчейн</span><h2>Два інструменти, один процес</h2><p class="muted">Ідея була не «додати AI» заради AI — кожен інструмент має чітку роль і вимірюваний вплив на швидкість та якість.</p></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>01 · Транскриптор</h3>
+          <p class="big">Інструмент, що автоматично транскрибує аудіо зустрічей — вимоги й домовленості фіксуються по ходу розмови і стають базою для всіх артефактів BA.</p>
+          <p class="note">Розгорнутий на власному сервері для конфіденційних даних. <b>Whisper</b> для розпізнавання мовлення — різні мови, <b>без обмежень по токенах, без підписки.</b></p>
+          <div class="stack"><span class="chip">Python</span><span class="chip">Whisper</span><span class="chip">FFmpeg</span><span class="chip">Gradio</span><span class="chip">Self-hosted</span></div>
+        </div>
+        <div class="panel">
+          <h3>02 · Comfy BA GPT</h3>
+          <p class="big">Кастомний GPT-агент з моїми інструкціями, що з транскрипції робить структуровані артефакти BA — <b>BRD, SRS, User Stories, BPMN.</b></p>
+          <p class="note">Керується командами (/create_brd, /describe_need), відповідає у форматах <b>summary / draft / detailed</b> і ставить уточнювальні питання, коли бракує даних. Працює зі зустрічами, зображеннями й таблицями.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Як це працює</span><h2>Від ініціативи до артефакту</h2></div>
+      <div class="pipe-frame">
+        <div class="pipe-scroll">
+          <div class="pipe">
+            <div class="node">Ініціатива</div><div class="arrow">&rarr;</div>
+            <div class="node">Задача BA</div><div class="arrow">&rarr;</div>
+            <div class="node">Збір вимог</div><div class="arrow">&rarr;</div>
+            <div class="node review">Транскриптор</div><div class="arrow">&rarr;</div>
+            <div class="node">Транскрипція</div><div class="arrow">&rarr;</div>
+            <div class="node review">Агент BA GPT</div><div class="arrow">&rarr;</div>
+            <div class="node">Артефакти</div><div class="arrow">&rarr;</div>
+            <div class="node commit">Перевірка (ітеративно)</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="item"><span class="swatch review"></span> Крок з AI-інструментом</div>
+          <div class="item"><span class="swatch commit"></span> Перевірка людиною</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Результат</span><h2>&minus;85% часу на документацію</h2></div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">163<span class="u">год</span></div><div class="lab">експертна оцінка — 4 BA, 22 фічі</div></div>
+        <div class="metric"><div class="fig">25<span class="u">год</span></div><div class="lab">факт, з AI-тулчейном</div></div>
+        <div class="metric"><div class="fig">&minus;85<span class="u">%</span></div><div class="lab">часу на документування вимог</div></div>
+        <div class="metric"><div class="fig">138<span class="u">год</span></div><div class="lab">зекономлено — ≈34,5 год на кожного BA</div></div>
+      </div>
+      <p class="muted" style="margin-top:16px;font-size:14px">Виміряно на 4 бізнес-аналітиках і 22 реальних фічах. Швидкість <b>і</b> якість — сенс не просто працювати швидше, а вивільнити час BA для бізнес-цінності, метрик і гіпотез.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Що було далі</span><h2>Куди це привело</h2></div>
+      <div class="principles">
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>Довші зустрічі</h3><p>Обробка аудіо понад годину (Whisper розбиває й конкатенує), запис прямо з дзвінка, спільна база знань для агента.</p></div></div>
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>Уніфікація артефактів</h3><p>Єдиний продуктовий шаблон документації між командами — потреба, гіпотеза, метрики, вимоги. (Окрема історія.)</p></div></div>
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>Текстові AI-інструкції</h3><p>Наступний крок: spec-first інструкції, за якими AI писав production-код — перша версія workflow, ще без агентів.</p></div></div>
+        <div class="principle"><span class="idx">&rarr;</span><div><h3>AI Workflow</h3><p>Що згодом переросло в повноцінну multi-agent платформу. <a href="ai-workflow.html">Читати історію AI Workflow &rarr;</a></p></div></div>
+      </div>
+    </div>
+
+    <div class="attrib">
+      <div class="row"><span class="k">Що це</span><span class="v">Два AI-інструменти для бізнес-аналізу — self-hosted <b>транскриптор</b> зустрічей і <b>кастомний GPT-агент</b>, що готує артефакти BA.</span></div>
+      <div class="row"><span class="k">Створено в</span><span class="v"><b>Comfy.</b> Інструменти реалізовано разом з <b>Михайлом Берелетом</b>; підхід, інструкції агента та впровадження — мої.</span></div>
+      <p class="disclaimer">Метрики — з внутрішньої оцінки на 4 BA і 22 фічах (експертна оцінка проти факту). Внутрішня ініціатива Comfy.</p>
+    </div>
+
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
+        root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
+      }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
+      });
+    })();
+  </script>
+
+</div>
+</body></html>
