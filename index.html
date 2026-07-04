@@ -308,6 +308,16 @@
     .pill::before,.tl::before,.tl-item::before,.proj::after,.photo-ring{
       -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
   }
+  /* ---------- world switcher ---------- */
+  .worlds{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-family:var(--mono);font-size:11px;font-weight:600;flex:none}
+  .worlds a{padding:6px 11px;color:var(--muted);white-space:nowrap;transition:.2s;letter-spacing:.2px}
+  .worlds a+a{border-left:1px solid var(--line)}
+  .worlds a.on{background:var(--grad);color:#fff}
+  .worlds a:not(.on):hover{color:var(--text)}
+  .nav{gap:15px}
+  .nav .links{gap:16px}
+  .nav .links a{white-space:nowrap;font-size:13px}
+  @media(max-width:760px){ .nav-suffix{display:none} .worlds{font-size:10px} .worlds a{padding:5px 8px} }
 </style>
 </head>
 <body>
@@ -319,7 +329,11 @@
 
 <header>
   <div class="wrap nav">
-    <div class="brand"><b>S.LIFER</b> <span style="color:var(--dim)">// AI Engineer</span></div>
+    <div class="brand"><b>S.LIFER</b></div>
+    <div class="worlds" role="group" aria-label="Worlds">
+      <a href="index.html" class="on" aria-current="true" data-en="AI Engineer">AI Engineer</a>
+      <a href="cynology.html" data-en="Cynology">Кінологія</a>
+    </div>
     <nav class="links" id="navlinks">
       <a href="#about" data-en="About">Про мене</a>
       <a href="#metrics" data-en="Impact">Результати</a>
