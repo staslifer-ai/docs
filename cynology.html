@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Мої статті — Станіслав Ліфер</title>
-<meta name="description" content="Статті Станіслава Ліфера про AI-системи та методологію: AI Workflow — мультиагентна платформа розробки, та Needs-Driven Development.">
+<title>Кінологія — другий світ Станіслава Ліфера</title>
+<meta name="description" content="Кінологічний світ Станіслава Ліфера: серйозне захоплення дресурою, поведінкою та кінологією — статті та власний проєкт.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Мої статті — Станіслав Ліфер">
-<meta property="og:description" content="Розгорнуті матеріали про AI-системи та методологію: AI Workflow і Needs-Driven Development.">
+<meta property="og:title" content="Кінологія — другий світ Станіслава Ліфера">
+<meta property="og:description" content="Дресура, поведінка та кінологія — статті та власний кінологічний проєкт.">
 <meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="https://staslifer-ai.github.io/docs/articles.html">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/cynology.html">
 <meta name="og:site_name" content="Stanislav Lifer">
 <meta name="twitter:card" content="summary_large_image">
 <style>
@@ -333,25 +333,43 @@
   .nav .links{gap:16px}
   .nav .links a{white-space:nowrap;font-size:13px}
   @media(max-width:760px){ .nav-suffix{display:none} .worlds{font-size:10px} .worlds a{padding:5px 8px} }
+  /* ---------- CYNOLOGY WORLD: green + pink accent over the dark base ---------- */
+  :root{
+    --p1:#4ade80; --p2:#22c55e; --p3:#ec4899;
+    --grad:linear-gradient(135deg,#34d399 0%,#22c55e 45%,#ec4899 100%);
+    --grad-soft:linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,197,94,.14),rgba(236,72,153,.12));
+  }
+  body::before{
+    background:
+      radial-gradient(60vw 60vw at 78% -8%, rgba(236,72,153,.18), transparent 60%),
+      radial-gradient(55vw 55vw at 8% 12%, rgba(34,197,94,.20), transparent 60%),
+      radial-gradient(50vw 50vw at 55% 108%, rgba(52,211,153,.12), transparent 60%),
+      var(--bg);
+  }
+  .cyno-hero{padding:clamp(48px,9vw,110px) 0 8px}
+  .cyno-hero h1{font-size:clamp(46px,10vw,104px);line-height:.98;letter-spacing:-.02em;font-weight:800;margin:6px 0 12px}
+  .cyno-hero .lead{max-width:64ch}
+  .cyno-sec{padding:clamp(34px,6vw,64px) 0 0}
+  .proj.art-soon{opacity:.72}
+  .cyno-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .cyno-gallery .ph{aspect-ratio:4/3;border:1px dashed var(--line);border-radius:14px;background:var(--grad-soft)}
+  @media(max-width:760px){ .cyno-gallery{grid-template-columns:1fr 1fr} }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap nav">
-    <a class="brand" href="index.html" style="text-decoration:none"><b>S.LIFER</b></a>
+    <a class="brand" href="cynology.html" style="text-decoration:none"><b>S.LIFER</b></a>
     <div class="worlds" role="group" aria-label="Worlds">
-      <a href="index.html" class="on" aria-current="true" data-en="AI Engineer">AI Engineer</a>
-      <a href="cynology.html" data-en="Cynology">Кінологія</a>
+      <a href="index.html" data-en="AI Engineer">AI Engineer</a>
+      <a href="cynology.html" class="on" aria-current="true" data-en="Cynology">Кінологія</a>
     </div>
     <nav class="links" id="navlinks">
-      <a href="index.html#about" data-en="About">Про мене</a>
-      <a href="index.html#metrics" data-en="Impact">Результати</a>
-      <a href="index.html#projects" data-en="Projects">Проєкти</a>
-      <a href="index.html#methodology" data-en="Methodology">Методологія</a>
-      <a href="articles.html" class="nav-articles" aria-current="page" data-en="My articles">Мої статті</a>
-      <a href="index.html#stack" data-en="Stack">Стек</a>
-      <a href="index.html#exp" data-en="Experience">Досвід</a>
-      <a href="index.html#contact" data-en="Contact">Контакти</a>
+      <a href="#cyno-about" data-en="About">Про світ</a>
+      <a href="#project" data-en="Project">Проєкт</a>
+      <a href="#cyno-articles" data-en="Articles">Статті</a>
+      <a href="#gallery" data-en="Gallery">Галерея</a>
+      <a href="#contact" data-en="Contact">Контакти</a>
     </nav>
     <div class="lang">
       <button id="ua" class="on" onclick="setLang('ua')">UA</button>
@@ -376,86 +394,87 @@
 </script>
 
 
-<!-- ARTICLES HUB -->
-<section id="articles" class="articles-hub">
+<!-- CYNOLOGY WORLD -->
+<section id="cyno-about" class="cyno-hero">
+  <div class="wrap">
+    <div class="eyebrow" data-en="My other world">Мій другий світ</div>
+    <h1><span class="grad-text" data-en="Cynology">Кінологія</span></h1>
+    <p class="lead" data-en="Beyond engineering &mdash; a serious, hands-on passion for dogs: training, behaviour and canine science. This is where I share what I learn and the project I'm building around it.">Поза інженерією &mdash; серйозне, практичне захоплення собаками: дресура, поведінка та кінологія. Тут я ділюсь тим, що вивчаю, і проєктом, який будую навколо цього.</p>
+    <div class="pills">
+      <span class="pill" data-en="Training">Дресура</span>
+      <span class="pill" data-en="Behaviour">Поведінка</span>
+      <span class="pill" data-en="Canine science">Кінологія</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT -->
+<section id="project" class="cyno-sec">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="sec-num">&#9997; &middot; <span data-en="ARTICLES">СТАТТІ</span></div>
-      <h2 data-en="My <span class='grad-text'>articles</span>">Мої <span class="grad-text">статті</span></h2>
-      <p class="lead" data-en="Long-form write-ups on the AI systems and the methodology I build &mdash; the thinking behind the projects.">Розгорнуті матеріали про AI-системи та методологію, які я будую &mdash; мислення за проєктами.</p>
+      <div class="sec-num">01 &middot; <span data-en="PROJECT">ПРОЄКТ</span></div>
+      <h2 data-en="My cynology <span class='grad-text'>project</span>">Мій кінологічний <span class="grad-text">проєкт</span></h2>
+    </div>
+    <div class="projects">
+      <div class="proj reveal">
+        <div class="proj-top">
+          <span class="proj-ic">&#128021;</span>
+          <div style="flex:1;min-width:200px">
+            <h3 data-en="Cynology project (details soon)">Кінологічний проєкт (деталі скоро)</h3>
+            <div class="role-line" data-en="In progress">У розробці</div>
+          </div>
+          <span class="proj-tag" data-en="SOON">СКОРО</span>
+        </div>
+        <p data-en="A dedicated project around dog training and canine science. The full story, goals and materials are on the way &mdash; this space is reserved for it.">Окремий проєкт навколо дресури та кінології. Повна історія, цілі та матеріали &mdash; в дорозі; це місце зарезервовано під нього.</p>
+        <div class="tags"><span data-en="Training">Дресура</span><span data-en="Behaviour">Поведінка</span><span>Cynology</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARTICLES (placeholders) -->
+<section id="cyno-articles" class="cyno-sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">02 &middot; <span data-en="ARTICLES">СТАТТІ</span></div>
+      <h2 data-en="Cynology <span class='grad-text'>articles</span>">Статті з <span class="grad-text">кінології</span></h2>
+      <p class="lead" data-en="Notes and long-form pieces on training, behaviour and living with dogs &mdash; coming soon.">Нотатки та лонгріди про дресуру, поведінку та життя із собаками &mdash; скоро.</p>
     </div>
     <div class="projects">
 
-      <a class="proj reveal art-card" href="ai-workflow.html">
+      <div class="proj reveal art-soon">
         <div class="proj-top">
-          <span class="proj-ic">&#9889;</span>
-          <div style="flex:1;min-width:200px">
-            <h3>AI Workflow</h3>
-            <div class="role-line" data-en="Multi-agent development platform">Мультиагентна платформа розробки</div>
-          </div>
-          <span class="proj-tag" data-en="ARTICLE">СТАТТЯ</span>
+          <span class="proj-ic">&#9997;</span>
+          <div style="flex:1;min-width:200px"><h3 data-en="First article — soon">Перша стаття — скоро</h3><div class="role-line" data-en="In preparation">Готується</div></div>
+          <span class="proj-tag" data-en="SOON">СКОРО</span>
         </div>
-        <p data-en="A team of specialized AI agents that carries a task from a brief to a merged pull request &mdash; with quality gates and a full audit trail. Built at Comfy, presented at AWS Summit Warsaw 2026.">Команда спеціалізованих AI-агентів веде задачу від брифу до змердженого pull request &mdash; з quality gates і повним audit trail. Створено в Comfy, представлено на AWS Summit Warsaw 2026.</p>
-        <div class="tags"><span>Multi-agent</span><span>Quality gates</span><span>Audit trail</span><span>AWS Summit</span><span>Comfy</span></div>
-        <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
-      </a>
+        <p data-en="Materials are in preparation. Check back soon &mdash; or hop over to the AI Engineer world meanwhile.">Матеріали готуються. Заходь пізніше &mdash; або зазирни у світ AI Engineer.</p>
+      </div>
 
-      <a class="proj reveal art-card" href="needs-driven-development.html">
+      <div class="proj reveal art-soon">
         <div class="proj-top">
-          <span class="proj-ic">&#127919;</span>
-          <div style="flex:1;min-width:200px">
-            <h3>Needs-Driven Development</h3>
-            <div class="role-line" data-en="My own methodology">Моя авторська методологія</div>
-          </div>
-          <span class="proj-tag" data-en="METHODOLOGY">МЕТОДОЛОГІЯ</span>
+          <span class="proj-ic">&#128218;</span>
+          <div style="flex:1;min-width:200px"><h3 data-en="More coming">Більше — скоро</h3><div class="role-line" data-en="In preparation">Готується</div></div>
+          <span class="proj-tag" data-en="SOON">СКОРО</span>
         </div>
-        <p data-en="An approach to building with AI agents where everything starts from a user need &mdash; taken all the way to the working AI Workflow platform. A synthesis of Working Backwards, spec-driven and Agile.">Підхід до розробки з AI-агентами, де все починається від потреби користувача &mdash; доведений до робочої платформи AI Workflow. Синтез Working Backwards, spec-driven та Agile.</p>
-        <div class="tags"><span>Needs-first</span><span>Working Backwards</span><span>Spec-driven</span><span>Agile</span></div>
-        <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
-      </a>
+        <p data-en="This grid will fill up with cynology write-ups over time.">Ця сітка поступово наповниться матеріалами з кінології.</p>
+      </div>
 
-      <a class="proj reveal art-card" href="ba-ai-toolkit.html">
-        <div class="proj-top">
-          <span class="proj-ic">&#127908;</span>
-          <div style="flex:1;min-width:200px">
-            <h3 data-en="From audio to BA artifacts">Від аудіо до артефактів BA</h3>
-            <div class="role-line" data-en="AI toolchain for business analysis">AI-тулчейн для бізнес-аналізу</div>
-          </div>
-          <span class="proj-tag" data-en="ARTICLE">СТАТТЯ</span>
-        </div>
-        <p data-en="Whisper + a custom GPT agent turn meeting audio into BRD/SRS/User Stories/BPMN &mdash; &minus;85% time on requirements docs across 22 features. Built at Comfy.">Whisper + кастомний GPT-агент перетворюють аудіо зустрічі на BRD/SRS/User Stories/BPMN &mdash; &minus;85% часу на документацію вимог на 22 фічах. Створено в Comfy.</p>
-        <div class="tags"><span>Whisper</span><span>Custom GPT</span><span>BA automation</span><span>&minus;85%</span><span>Comfy</span></div>
-        <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
-      </a>
+    </div>
+  </div>
+</section>
 
-      <a class="proj reveal art-card" href="one-doc-three-teams.html">
-        <div class="proj-top">
-          <span class="proj-ic">&#128203;</span>
-          <div style="flex:1;min-width:200px">
-            <h3 data-en="One doc for three teams">Один документ на три команди</h3>
-            <div class="role-line" data-en="Product-first BA documentation">Продуктовий шаблон документації BA</div>
-          </div>
-          <span class="proj-tag" data-en="CASE">КЕЙС</span>
-        </div>
-        <p data-en="A product-first BA doc template (need → metrics → API) and a one-owner-doc model across teams &mdash; proven on a refund feature spanning 3 teams. With colleague feedback.">Продуктовий шаблон документації BA (потреба → метрики → API) і модель одного owner-документа на кілька команд &mdash; доведено на фічі повернення коштів для 3 команд. З фідбеком колег.</p>
-        <div class="tags"><span>BA</span><span>Documentation</span><span>Cross-team</span><span>Owner-BA</span><span>Comfy</span></div>
-        <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
-      </a>
-
-      <a class="proj reveal art-card" href="search-dashboard.html">
-        <div class="proj-top">
-          <span class="proj-ic">&#128202;</span>
-          <div style="flex:1;min-width:200px">
-            <h3 data-en="A search-analytics dashboard in 2.5 h">Дашборд аналітики пошуку за 2,5 год</h3>
-            <div class="role-line" data-en="Built solo on AI Workflow">Зібрано самостійно на AI Workflow</div>
-          </div>
-          <span class="proj-tag" data-en="CASE">КЕЙС</span>
-        </div>
-        <p data-en="A product dashboard for internal search analytics (site + app), built solo on AI Workflow in 2.5 hours &mdash; the weekly report went from 2 h to 30 sec (&minus;240×).">Продуктовий дашборд аналітики внутрішнього пошуку (сайт + додаток), зібраний самостійно на AI Workflow за 2,5 години &mdash; тижневий звіт з 2 год до 30 сек (&minus;240×).</p>
-        <div class="tags"><span>AI Workflow</span><span>Dogfooding</span><span>Analytics</span><span>&minus;240×</span><span>Comfy</span></div>
-        <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
-      </a>
-
+<!-- GALLERY (placeholders) -->
+<section id="gallery" class="cyno-sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">03 &middot; <span data-en="GALLERY">ГАЛЕРЕЯ</span></div>
+      <h2 data-en="<span class='grad-text'>Photos</span> &mdash; soon">Фото &mdash; <span class="grad-text">скоро</span></h2>
+      <p class="lead" data-en="Photos of my dogs and training are on the way.">Фото моїх собак і тренувань — в дорозі.</p>
+    </div>
+    <div class="cyno-gallery reveal">
+      <div class="ph"></div><div class="ph"></div><div class="ph"></div>
+      <div class="ph"></div><div class="ph"></div><div class="ph"></div>
     </div>
   </div>
 </section>
