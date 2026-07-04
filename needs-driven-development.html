@@ -197,6 +197,11 @@
     .pipe-notes { grid-template-columns: 1fr; }
     .attrib .row { grid-template-columns: 1fr; gap: 2px; }
   }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 </style>
 
 <div class="ndd" id="ndd-root" data-lang="uk">
@@ -210,6 +215,11 @@
 
   <!-- ============================= ENGLISH ============================= -->
   <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+    </nav>
 
     <header class="masthead">
       <span class="eyebrow">Software Development Methodology · Author's Framework</span>
@@ -393,6 +403,11 @@
 
   <!-- ============================= УКРАЇНСЬКА ============================= -->
   <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+    </nav>
 
     <header class="masthead">
       <span class="eyebrow">Методологія розробки ПЗ · Авторський фреймворк</span>
