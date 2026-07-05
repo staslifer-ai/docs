@@ -149,6 +149,13 @@
   .proj-link{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-family:var(--mono);font-size:13.5px;color:#fff;font-weight:700;background:var(--grad);border-radius:10px;padding:11px 18px;transition:.25s;box-shadow:0 10px 26px -10px rgba(229,57,127,.6);letter-spacing:.3px}
   .proj-link:hover{transform:translateY(-2px);box-shadow:0 14px 32px -8px rgba(229,57,127,.8);text-decoration:none}
   .proj-img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);margin-top:16px;display:block}
+  .proj-feats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+  .proj-feat{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:rgba(255,255,255,.02);transition:.25s}
+  .proj-feat:hover{border-color:#3a3a5c;background:rgba(255,255,255,.04)}
+  .proj-feat .fi{font-size:19px;line-height:1.1;flex-shrink:0}
+  .proj-feat h4{font-size:13.5px;color:#dcdcec;font-weight:700;margin:0}
+  .proj-feat p{font-size:12px;color:var(--muted);line-height:1.5;margin:3px 0 0}
+  @media(max-width:560px){.proj-feats{grid-template-columns:1fr}}
 
   /* stack */
   .stack{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
@@ -421,12 +428,24 @@
           <span class="proj-ic">&#128021;</span>
           <div style="flex:1;min-width:200px">
             <h3>DogPlan</h3>
-            <div class="role-line" data-en="AI dog-training platform">AI-платформа для дресури собак</div>
+            <div class="role-line" data-en="AI dog-training platform &middot; my own product">AI-платформа для дресури собак &middot; власний продукт</div>
           </div>
           <span class="proj-tag" data-en="BETA">БЕТА</span>
         </div>
-        <p data-en="A platform I'm building for dog owners and trainers: AI-generated training plans, a knowledge base, a gamified virtual buddy that grows as you train, and progress analytics.">Платформа, яку я будую для власників собак і кінологів: AI-плани тренувань, база знань, гейміфікований віртуальний buddy, що росте разом із тренуваннями, та аналітика прогресу.</p>
-        <div class="tags"><span data-en="AI training plans">AI-плани тренувань</span><span data-en="Knowledge base">База знань</span><span data-en="Gamification">Гейміфікація</span><span data-en="Analytics">Аналітика</span></div>
+        <img class="proj-img" src="assets/cynology-cover.png" alt="DogPlan" loading="lazy">
+        <p data-en="A platform for dog owners and trainers that I design and build end-to-end &mdash; from backend to content. Structured training plans, a smart AI assistant and gamification in one app.">Платформа для власників собак і кінологів, яку я проєктую та розробляю сам &mdash; від бекенду до контенту. Структуровані плани тренувань, розумний AI-асистент і гейміфікація в одному застосунку.</p>
+        <div class="proj-feats">
+          <div class="proj-feat"><span class="fi">&#129504;</span><div><h4 data-en="AI plans + cases">AI-плани + кейси</h4><p data-en="Curated plans that adapt to your situation via case rules">Куровані плани, що адаптуються під ситуацію правилами-кейсами</p></div></div>
+          <div class="proj-feat"><span class="fi">&#128172;</span><div><h4 data-en="RAG FAQ chat">RAG FAQ-чат</h4><p data-en="A gpt-4o assistant with knowledge-base search (pgvector)">Асистент на gpt-4o з пошуком по базі знань (pgvector)</p></div></div>
+          <div class="proj-feat"><span class="fi">&#127918;</span><div><h4 data-en="Gamified buddy">Buddy-гейміфікація</h4><p data-en="A virtual companion that grows as you train">Віртуальний компаньйон, що росте разом із тренуваннями</p></div></div>
+          <div class="proj-feat"><span class="fi">&#128200;</span><div><h4 data-en="Progress analytics">Аналітика прогресу</h4><p data-en="Stages, streaks and completion stats">Стадії, серії (streak) та статистика виконання</p></div></div>
+        </div>
+        <div class="proj-stats">
+          <div><div class="v">126</div><div class="k" data-en="adaptation rules">правил адаптації</div></div>
+          <div><div class="v">52</div><div class="k" data-en="FAQ entries &middot; RAG">записи FAQ &middot; RAG</div></div>
+          <div><div class="v">21</div><div class="k" data-en="exercises per plan">вправа у плані</div></div>
+        </div>
+        <div class="tags"><span>FastAPI</span><span>PostgreSQL + pgvector</span><span>OpenAI gpt-4o</span><span>Redis</span><span>JWT</span></div>
       </div>
     </div>
   </div>
