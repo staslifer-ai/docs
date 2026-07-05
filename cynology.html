@@ -359,7 +359,9 @@
   .cyno-sec{padding:clamp(34px,6vw,64px) 0 0}
   .proj.art-soon{opacity:.72}
   .cyno-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  .cyno-gallery .ph{aspect-ratio:4/3;border:1px dashed var(--line);border-radius:14px;background:var(--grad-soft)}
+  .cyno-gallery img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:var(--grad-soft);display:block;filter:grayscale(.12) contrast(1.03);transition:.3s}
+  .cyno-gallery img:hover{filter:none;transform:translateY(-3px);border-color:#3a3a5c}
+  .cyno-gallery .ph{aspect-ratio:3/4;border:1px dashed var(--line);border-radius:14px;background:var(--grad-soft)}
   @media(max-width:760px){ .cyno-gallery{grid-template-columns:1fr 1fr} }
 </style>
 </head>
@@ -490,12 +492,21 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="sec-num">03 &middot; <span data-en="GALLERY">ГАЛЕРЕЯ</span></div>
-      <h2 data-en="<span class='grad-text'>Photos</span> &mdash; soon">Фото &mdash; <span class="grad-text">скоро</span></h2>
-      <p class="lead" data-en="Photos of my dogs and training are on the way.">Фото моїх собак і тренувань — в дорозі.</p>
+      <h2 data-en="Training <span class='grad-text'>photos</span>">Фото з <span class="grad-text">тренувань</span></h2>
+      <p class="lead" data-en="A few moments from training with my dog.">Кілька моментів із наших тренувань.</p>
     </div>
     <div class="cyno-gallery reveal">
-      <div class="ph"></div><div class="ph"></div><div class="ph"></div>
-      <div class="ph"></div><div class="ph"></div><div class="ph"></div>
+      <img src="assets/cynology/dog-01.jpg" alt="Станіслав із собакою на тренуванні" loading="lazy">
+      <img src="assets/cynology/dog-02.jpg" alt="Станіслав із собакою у парку" loading="lazy">
+      <img src="assets/cynology/dog-03.jpg" alt="Відпрацювання команди із собакою" loading="lazy">
+      <img src="assets/cynology/dog-04.jpg" alt="Собака у стрибку на тренуванні" loading="lazy">
+      <img src="assets/cynology/dog-05.jpg" alt="Собака виконує команду сидіти" loading="lazy">
+      <img src="assets/cynology/dog-06.jpg" alt="Собака ловить м'яч" loading="lazy">
+      <img src="assets/cynology/dog-07.jpg" alt="Гра з фрісбі на тренуванні" loading="lazy">
+      <img src="assets/cynology/dog-08.jpg" alt="Собака на прогулянці" loading="lazy">
+      <img src="assets/cynology/dog-09.jpg" alt="Робота поруч із собакою" loading="lazy">
+      <img src="assets/cynology/dog-10.jpg" alt="Портрет собаки з господарем" loading="lazy">
+      <img src="assets/cynology/dog-11.jpg" alt="Собака поруч під час руху" loading="lazy">
     </div>
   </div>
 </section>
