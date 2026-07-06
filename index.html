@@ -358,9 +358,9 @@
       <a href="#exp" data-en="Experience">Досвід</a>
       <a href="#contact" data-en="Contact">Контакти</a>
     </nav>
-    <div class="lang">
-      <button id="ua" class="on" onclick="setLang('ua')">UA</button>
-      <button id="en" onclick="setLang('en')">EN</button>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="ua" class="on" aria-pressed="true" onclick="setLang('ua')">UA</button>
+      <button id="en" aria-pressed="false" onclick="setLang('en')">EN</button>
     </div>
     <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </div>
@@ -791,6 +791,8 @@ function setLang(lang){
   document.documentElement.lang = (lang==='en')?'en':'uk';
   document.getElementById('ua').classList.toggle('on', lang!=='en');
   document.getElementById('en').classList.toggle('on', lang==='en');
+  document.getElementById('ua').setAttribute('aria-pressed', lang!=='en');
+  document.getElementById('en').setAttribute('aria-pressed', lang==='en');
   try{ localStorage.setItem('lifer-lang', lang); }catch(e){}
   try{ syncRunBtn(); }catch(e){}
 }

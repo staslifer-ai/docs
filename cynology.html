@@ -383,9 +383,9 @@
       <a href="#gallery" data-en="Gallery">Галерея</a>
       <a href="#contact" data-en="Contact">Контакти</a>
     </nav>
-    <div class="lang">
-      <button id="ua" class="on" onclick="setLang('ua')">UA</button>
-      <button id="en" onclick="setLang('en')">EN</button>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="ua" class="on" aria-pressed="true" onclick="setLang('ua')">UA</button>
+      <button id="en" aria-pressed="false" onclick="setLang('en')">EN</button>
     </div>
     <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </div>
@@ -430,7 +430,7 @@
     <div class="projects">
       <div class="proj reveal">
         <div class="proj-top">
-          <span class="proj-ic">&#128021;</span>
+          <span class="proj-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="url(#g)" aria-hidden="true"><circle cx="5" cy="10" r="2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="19" cy="10" r="2"/><path d="M12 10c-3 0-6 2.6-6 5.4 0 1.8 1.4 3 3.2 3 1 0 1.9-.4 2.8-.4s1.8.4 2.8.4c1.8 0 3.2-1.2 3.2-3C18 12.6 15 10 12 10z"/></svg></span>
           <div style="flex:1;min-width:200px">
             <h3>DogPlan</h3>
             <div class="role-line" data-en="AI dog-training platform &middot; my own product">AI-платформа для дресури собак &middot; власний продукт</div>
@@ -513,7 +513,7 @@
 
       <a class="proj reveal art-card" href="dog-training-plans.html">
         <div class="proj-top">
-          <span class="proj-ic">&#128054;</span>
+          <span class="proj-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="url(#g)" aria-hidden="true"><circle cx="5" cy="10" r="2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="19" cy="10" r="2"/><path d="M12 10c-3 0-6 2.6-6 5.4 0 1.8 1.4 3 3.2 3 1 0 1.9-.4 2.8-.4s1.8.4 2.8.4c1.8 0 3.2-1.2 3.2-3C18 12.6 15 10 12 10z"/></svg></span>
           <div style="flex:1;min-width:200px"><h3 data-en="How training plans work in DogPlan">Як влаштовані плани тренувань у DogPlan</h3><div class="role-line" data-en="DogPlan &middot; guide">DogPlan &middot; розбір</div></div>
           <span class="proj-tag" data-en="ARTICLE">СТАТТЯ</span>
         </div>
@@ -524,7 +524,7 @@
 
       <a class="proj reveal art-card" href="dogplan-under-the-hood.html">
         <div class="proj-top">
-          <span class="proj-ic">&#9881;&#65039;</span>
+          <span class="proj-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#g)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></span>
           <div style="flex:1;min-width:200px"><h3 data-en="DogPlan under the hood">DogPlan під капотом</h3><div class="role-line" data-en="Engineering deep-dive &middot; AI world">Інженерний розбір &middot; світ AI</div></div>
           <span class="proj-tag" data-en="CASE">КЕЙС</span>
         </div>
@@ -535,7 +535,7 @@
 
       <div class="proj reveal art-soon">
         <div class="proj-top">
-          <span class="proj-ic">&#128218;</span>
+          <span class="proj-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#g)" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-1.6-5.5-1.8-8-.8V19c2.5-1 6-.8 8 .8 2-1.6 5.5-1.8 8-.8V5.2c-2.5-1-6-.8-8 .8z"/><line x1="12" y1="6" x2="12" y2="19.8"/></svg></span>
           <div style="flex:1;min-width:200px"><h3 data-en="More coming">Більше — скоро</h3><div class="role-line" data-en="In preparation">Готується</div></div>
           <span class="proj-tag" data-en="SOON">СКОРО</span>
         </div>
@@ -598,6 +598,8 @@ function setLang(lang){
   document.documentElement.lang = (lang==='en')?'en':'uk';
   document.getElementById('ua').classList.toggle('on', lang!=='en');
   document.getElementById('en').classList.toggle('on', lang==='en');
+  document.getElementById('ua').setAttribute('aria-pressed', lang!=='en');
+  document.getElementById('en').setAttribute('aria-pressed', lang==='en');
   try{ localStorage.setItem('lifer-lang', lang); }catch(e){}
 }
 // ---------- reveal on scroll ----------
