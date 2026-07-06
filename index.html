@@ -84,7 +84,9 @@
   h1{font-size:clamp(38px,6vw,66px);line-height:1.02;font-weight:800;letter-spacing:-1.5px}
   .role{font-size:clamp(19px,2.4vw,26px);font-weight:600;margin-top:10px}
   .role .grad-text{font-weight:800}
-  .subrole{color:var(--muted);font-size:15px;margin-top:6px;font-family:var(--mono)}
+  .subrole{color:var(--muted);font-size:15px;margin-top:6px;font-family:var(--mono);min-height:1.6em}
+  .subrole.typing::after{content:'▌';color:var(--p2);animation:cblink 1s steps(1) infinite;margin-left:1px}
+  @keyframes cblink{50%{opacity:0}}
   .tagline{color:var(--text);opacity:.9;font-size:17px;margin-top:20px;max-width:34em}
   .pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
   .pill{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);
@@ -385,7 +387,7 @@
       <div class="eyebrow" data-en="AI Engineer &middot; ex-Business Analyst">AI Engineer &middot; ex-Business Analyst</div>
       <h1 data-en="Stanislav<br>Lifer">Станіслав<br>Ліфер</h1>
       <div class="role"><span class="grad-text">AI Engineer</span></div>
-      <div class="subrole" data-en="product thinking + engineering execution">продуктове мислення + інженерна реалізація</div>
+      <div class="subrole" id="subrole">продуктове мислення + інженерна реалізація</div>
       <p class="tagline" data-en="I design and build multi-agent AI systems &mdash; from idea and discovery all the way to production code.">Проєктую та будую multi-agent AI-системи &mdash; від ідеї й discovery до production-коду.</p>
       <div class="pills">
         <span class="pill" data-en="In IT since 2016">В ІТ з 2016</span>
@@ -819,6 +821,32 @@ const cntObs = new IntersectionObserver((entries)=>{
 },{threshold:0.5});
 document.querySelectorAll('[data-count]').forEach(el=>cntObs.observe(el));
 
+// ---------- hero typing effect ----------
+(function(){
+  var el=document.getElementById('subrole');
+  if(!el) return;
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var PH={
+    ua:['продуктове мислення + інженерна реалізація','multi-agent системи · від ідеї до production','ex-Business Analyst → AI Engineer','автор Needs-Driven Development'],
+    en:['product thinking + engineering execution','multi-agent systems · idea to production','ex-Business Analyst → AI Engineer','author of Needs-Driven Development']
+  };
+  function lang(){ try{ return localStorage.getItem('lifer-lang')==='en'?'en':'ua'; }catch(e){ return 'ua'; } }
+  var i=0, timer=null;
+  function step(fn,ms){ timer=setTimeout(fn,ms); }
+  function typePhrase(txt,done){
+    var n=0;
+    (function t(){ el.textContent=txt.slice(0,++n); if(n<txt.length) step(t,42); else step(done,2400); })();
+  }
+  function erase(done){
+    (function e(){ var cur=el.textContent; if(cur.length){ el.textContent=cur.slice(0,-1); step(e,20); } else step(done,260); })();
+  }
+  function loop(){
+    var list=PH[lang()];
+    typePhrase(list[i%list.length],function(){ erase(function(){ i++; loop(); }); });
+  }
+  // старт после CSS-входа hero (~2.3s); первая фраза уже стоит в HTML — начинаем со стирания
+  setTimeout(function(){ el.classList.add('typing'); i=1; erase(loop); }, 3200);
+})();
 // ---------- restore language ----------
 try{ const saved = localStorage.getItem('lifer-lang'); if(saved==='en') setLang('en'); }catch(e){}
 
