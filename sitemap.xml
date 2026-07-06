@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://staslifer-ai.github.io/docs/</loc><priority>1.0</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/articles.html</loc><priority>0.8</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/cynology.html</loc><priority>0.8</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/ai-workflow.html</loc><priority>0.7</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/needs-driven-development.html</loc><priority>0.7</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/ba-ai-toolkit.html</loc><priority>0.7</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/one-doc-three-teams.html</loc><priority>0.7</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/search-dashboard.html</loc><priority>0.7</priority></url>
+  <url><loc>https://staslifer-ai.github.io/docs/dog-training-plans.html</loc><priority>0.7</priority></url>
+</urlset>

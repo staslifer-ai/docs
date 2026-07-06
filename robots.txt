@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://staslifer-ai.github.io/docs/sitemap.xml

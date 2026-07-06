@@ -5,6 +5,9 @@ _src/
 _materials/
 _shots/
 
+# Рабочий беклог — не публикуется (внутренние заметки/идеи)
+backlog.txt
+
 # Fallback по именам — на случай файлов вне рабочих папок
 resume.html
 *.src.html
