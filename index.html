@@ -776,6 +776,7 @@
       <span class="pill">📍 Kyiv, Ukraine</span>
     </div>
     <div class="copyright" data-en="&copy; 2026 Stanislav Lifer &middot; AI Engineer">&copy; 2026 Станіслав Ліфер &middot; AI Engineer</div>
+    <button class="term-link" type="button">&gt;_ термінал</button>
   </div>
 </footer>
 
@@ -1029,6 +1030,75 @@ syncRunBtn();
   function close(){ panel.classList.remove('open'); fab.setAttribute('aria-expanded','false'); }
   fab.addEventListener('click',function(){ panel.classList.contains('open')?close():open(); });
   closeBtn.addEventListener('click',close);
+})();
+</script>
+<!-- ============ Терминал-консоль (easter egg) ============ -->
+<style>
+  .term-link{display:inline-block;margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--dim);cursor:pointer;background:none;border:0;letter-spacing:.5px;transition:.2s}
+  .term-link:hover{color:var(--p2)}
+  .term-overlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(4,4,10,.8);backdrop-filter:blur(6px);padding:20px}
+  .term-overlay.open{display:flex}
+  .term{width:min(720px,100%);height:min(480px,80vh);display:flex;flex-direction:column;background:#0a0a14;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 40px 90px -20px #000}
+  .term-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#12121f;border-bottom:1px solid var(--line)}
+  .term-bar .b{width:11px;height:11px;border-radius:50%}
+  .term-bar .b.r{background:#ff5f57}.term-bar .b.y{background:#ffbd2e}.term-bar .b.g{background:#28c840}
+  .term-bar .cap{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-left:8px}
+  .term-bar .x{margin-left:auto;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer}
+  .term-out{flex:1;overflow-y:auto;padding:14px 16px;font-family:var(--mono);font-size:13px;line-height:1.65;color:#c9c9de;white-space:pre-wrap;word-break:break-word}
+  .term-out a{color:var(--p2)}
+  .term-out .p{color:#5ee0a0}
+  .term-out .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+  .term-in{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line);background:#0d0d18}
+  .term-in .pr{font-family:var(--mono);font-size:13px;color:#5ee0a0;flex:none}
+  .term-in input{flex:1;background:transparent;border:0;outline:0;color:#fff;font-family:var(--mono);font-size:13px}
+  @media print{.term-overlay,.term-link{display:none !important}}
+</style>
+<div class="term-overlay" id="termOverlay" role="dialog" aria-label="Terminal">
+  <div class="term">
+    <div class="term-bar"><span class="b r"></span><span class="b y"></span><span class="b g"></span><span class="cap">guest@slifer — resume-shell</span><button class="x" id="termClose" type="button" aria-label="Close">&times;</button></div>
+    <div class="term-out" id="termOut"></div>
+    <div class="term-in"><span class="pr">guest@slifer:~$</span><input id="termInput" type="text" autocomplete="off" spellcheck="false" aria-label="Command input"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var ov=document.getElementById('termOverlay'), out=document.getElementById('termOut'),
+      inp=document.getElementById('termInput');
+  var CMDS={
+    help:'Доступні команди:\n  <span class="p">about</span>      — хто такий Станіслав\n  <span class="p">projects</span>   — головні проєкти\n  <span class="p">articles</span>   — список статей\n  <span class="p">stack</span>      — технічний стек\n  <span class="p">ndd</span>        — методологія NDD\n  <span class="p">contact</span>    — контакти\n  <span class="p">dog</span>        — 🐕 другий світ\n  <span class="p">clear</span>      — очистити екран\n  <span class="p">exit</span>       — закрити термінал',
+    about:'<span class="grad">Станіслав Ліфер</span> — AI Engineer @ Comfy (з 10.2025), ex-Business Analyst.\nПридумав і збудував платформу AI Workflow (16 агентів, 14+ етапів).\nАвтор методології Needs-Driven Development.\nПредставляв AI Workflow на AWS Summit Warsaw 2026.',
+    projects:'AI Workflow   — multi-agent платформа розробки · v2.0 · ~29K LOC\nComfyAI       — 5 агентів підтримки клієнтів · 45K+ LOC · production\nDogPlan       — власний SaaS дресури собак · live на dogplan.net',
+    articles:'1. <a href="ai-workflow.html">AI Workflow</a>\n2. <a href="from-instructions-to-platform.html">Від текстових інструкцій до платформи</a>\n3. <a href="needs-driven-development.html">Needs-Driven Development</a>\n4. <a href="ba-to-ai-engineer.html">BA → AI Engineer: без PO і PM</a>\n5. <a href="ba-ai-toolkit.html">Від аудіо до артефактів BA</a>\n6. <a href="comfyai-under-the-hood.html">ComfyAI під капотом</a>\n7. <a href="one-doc-three-teams.html">Один документ на три команди</a>\n8. <a href="search-dashboard.html">Дашборд аналітики пошуку за 2,5 год</a>\n9. <a href="dogplan-under-the-hood.html">DogPlan під капотом</a>',
+    stack:'Python 3.12 · FastAPI · PostgreSQL (+pgvector) · Redis · SQLAlchemy\nAWS Bedrock · Anthropic Claude · Nova Micro · MongoDB\nHTMX · Alpine.js · Drawflow · vanilla JS · Playwright',
+    ndd:'Needs-Driven Development — авторська методологія.\nОдиниця роботи — потреба користувача (NEED), простежена від\npress release до задеплоєного коду через пайплайн AI-агентів.\n→ <a href="needs-driven-development.html">one-pager</a>',
+    contact:'email    : <a href="mailto:stanislavlifer6mail@gmail.com">stanislavlifer6mail@gmail.com</a>\nlinkedin : <a href="https://linkedin.com/in/staslifer" target="_blank" rel="noopener">linkedin.com/in/staslifer</a>\ntelegram : <a href="https://t.me/stasmike14" target="_blank" rel="noopener">@stasmike14</a>\nlocation : Kyiv, Ukraine',
+    dog:'🐕 Другий світ — кінологія: дресура, поведінка і власна\nAI-платформа DogPlan (126 правил адаптації, RAG на pgvector).\n→ <a href="cynology.html">cynology.html</a>'
+  };
+  function print(html){ var d=document.createElement('div'); d.innerHTML=html; out.appendChild(d); out.scrollTop=out.scrollHeight; }
+  function prompt(cmd){ print('<span class="p">guest@slifer:~$</span> '+cmd.replace(/</g,'&lt;')); }
+  function run(cmd){
+    var c=cmd.trim().toLowerCase();
+    if(!c) return;
+    prompt(cmd);
+    if(c==='clear'){ out.innerHTML=''; return; }
+    if(c==='exit'){ close(); return; }
+    if(CMDS[c]) print(CMDS[c]+'\n');
+    else print('command not found: '+c.replace(/</g,'&lt;')+' — спробуй <span class="p">help</span>\n');
+  }
+  function open(){
+    ov.classList.add('open');
+    if(!out.childNodes.length){
+      print('<span class="grad">S.LIFER resume-shell</span> v1.0 — інтерактивне резюме');
+      print('Введи <span class="p">help</span> щоб побачити команди.\n');
+    }
+    setTimeout(function(){ inp.focus(); },50);
+  }
+  function close(){ ov.classList.remove('open'); }
+  document.querySelectorAll('.term-link').forEach(function(b){ b.addEventListener('click',open); });
+  document.getElementById('termClose').addEventListener('click',close);
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&ov.classList.contains('open')) close(); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ run(inp.value); inp.value=''; } });
 })();
 </script>
 </body>
