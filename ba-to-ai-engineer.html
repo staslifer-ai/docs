@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BA → AI Engineer: AI-проєкти без PO і PM · Станіслав Ліфер</title>
+<meta name="description" content="Думка з досвіду: чому на AI-проєктах (ComfyAI, AI Workflow) немає виділених PO і PM — і вони релізяться. BA-база + технічна ширина = весь цикл в одній людині. 57 NEEDs, 145+ TASKs, запити від 6 дирекцій.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BA → AI Engineer: AI-проєкти без PO і PM">
+<meta property="og:description" content="Чому AI-проєкти працюють без виділених PO/PM: весь цикл в одній людині. 57 NEEDs · 145+ TASKs · 6 дирекцій.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/ba-to-ai-engineer.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="canonical" href="https://staslifer-ai.github.io/docs/ba-to-ai-engineer.html">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "BA → AI Engineer: AI-проєкти без PO і PM", "inLanguage": "uk", "url": "https://staslifer-ai.github.io/docs/ba-to-ai-engineer.html", "image": "https://staslifer-ai.github.io/docs/assets/og-cover.png", "author": {"@type": "Person", "name": "Stanislav Lifer", "alternateName": "Станіслав Ліфер", "jobTitle": "AI Engineer", "url": "https://staslifer-ai.github.io/docs/", "sameAs": ["https://linkedin.com/in/staslifer"]}}</script>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Opinion &middot; career path</span>
+      <h1>BA &rarr; AI Engineer: AI projects without a PO or PM</h1>
+      <p class="lede">My AI projects &mdash; ComfyAI and <a href="ai-workflow.html">AI Workflow</a> &mdash; have <b>no dedicated product owner and no project manager</b>. And they ship. This is an argument from experience: on AI projects, one person with a strong BA base and technical breadth can carry the whole loop &mdash; and why that combination became the entry point for AI requests across the company.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Type</div><div class="v">Opinion<span class="sub">backed by shipped projects</span></div></div>
+        <div class="cell"><div class="k">Role</div><div class="v">BA &rarr; AI Engineer<span class="sub">PO + PM + ARCH + QA in one</span></div></div>
+        <div class="cell"><div class="k">Scale</div><div class="v">57 NEEDs &middot; 145+ TASKs<span class="sub">30+ refactoring items</span></div></div>
+        <div class="cell"><div class="k">Reach</div><div class="v">6 directorates<span class="sub">company-wide AI entry point</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The claim</span></div>
+      <p class="thesis">On AI projects the classic role split stops paying for itself. When AI agents do the production work, the human&rsquo;s job is to <span class="em">hold the whole loop</span> &mdash; need, priority, architecture, quality bar, scope. Splitting that loop across PO, PM and BA reintroduces the very hand-offs the agents just removed.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Why it works</span>
+        <h2>A BA base plus technical breadth</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Strong BA skills</h3>
+          <p class="big">I can design a business process, spot the automation points and understand how to hit them efficiently. I reason in <b>business logic</b> &mdash; needs, metrics, success criteria &mdash; not only in technical detail.</p>
+        </div>
+        <div class="panel">
+          <h3>Technical breadth</h3>
+          <p class="big">I can deploy a service on a server, design a system, and write code &mdash; with mistakes, but I write it and <b>carry it to a result</b>. That removes the blockers that usually stall AI initiatives at the start.</p>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:16px;">Because of this combination, people come not just with &ldquo;let&rsquo;s add AI&rdquo; ideas but with concrete business problems &mdash; and I can walk them the whole way from discovery to production.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">What I actually do</span>
+        <h2>Beyond the classic BA role</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">PO</span><div><h4>Build the backlog from zero</h4><p>I write the needs (NEEDs), translate them into technical tasks (TASKs), define acceptance criteria. ComfyAI: 57 needs; AI Workflow: 145+ backlog tasks &mdash; all documented under one methodology.</p></div></div>
+        <div class="principle"><span class="idx">PO</span><div><h4>Prioritize</h4><p>Order of delivery by business value, dependencies and risk; high/medium/low plus REF / NEED / TASK groups for transparent planning.</p></div></div>
+        <div class="principle"><span class="idx">PM</span><div><h4>Plan development and releases</h4><p>Sprint plans, milestones, release notes, team sync &mdash; the operational rhythm a PM would normally own.</p></div></div>
+        <div class="principle"><span class="idx">PM</span><div><h4>Run my own methodology</h4><p><a href="needs-driven-development.html">Needs-Driven Development</a>: discovery &rarr; spec &rarr; MVP &rarr; iteration &rarr; metrics. Every NEED passes the full cycle with artifacts at each stage.</p></div></div>
+        <div class="principle"><span class="idx">ARCH</span><div><h4>Make architecture calls</h4><p>Monolith vs microservices, event-driven or not, feature flags, self-learning vs hardcoded rules &mdash; I choose approaches, then finalize technical decisions in pair with engineering.</p></div></div>
+        <div class="principle"><span class="idx">QA</span><div><h4>Own the quality bar</h4><p>In AI Workflow I built reviewer agents driven by skills rules &mdash; every artifact is checked before merge. I define the quality criteria for specs, designs and code.</p></div></div>
+        <div class="principle"><span class="idx">MVP</span><div><h4>Cut the scope</h4><p>What ships in v1, what waits for v2, what stays in the backlog. ComfyAI&rsquo;s MVP was 5 agents instead of &ldquo;everything at once&rdquo; &mdash; which is why it released fast and grew iteratively.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The side effect</span>
+        <h2>Becoming the company&rsquo;s AI entry point</h2>
+        <p class="muted">Within a year this profile turned into the de-facto intake point for AI requests &mdash; far beyond the mobile project where I&rsquo;m formally a BA. Requests come from six different directions:</p>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Design team</h4><p>AI automation of design workflows and routine.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>B2B supplier portal</h4><p>AI features and process automation for the supplier cabinet.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Document management</h4><p>AI document processing, classification, summarization.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>Admin panel team</h4><p>AI integrations in admin flows, operations automation.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h4>E-com (web + mobile)</h4><p>Product selection, characteristics, review translation, comparisons, analogues.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h4>Product owners</h4><p>Requests from POs across directorates &mdash; from discovery to ready technical solutions.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The numbers</span>
+        <h2>Scale of the one-person loop</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">57</div><div class="lab">NEEDs shipped through my own NDD (ComfyAI)</div></div>
+        <div class="metric"><div class="fig">145<span class="u">+</span></div><div class="lab">TASKs in the AI Workflow backlog</div></div>
+        <div class="metric"><div class="fig">30<span class="u">+</span></div><div class="lab">refactoring (REF) items tracked</div></div>
+        <div class="metric" style="border-right:none;"><div class="fig">6</div><div class="lab">directorates sending AI requests</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Takeaway</span>
+        <h2>Senior by responsibility, not by title</h2>
+      </div>
+      <p class="thesis">Neither ComfyAI nor AI Workflow has a dedicated PO or PM &mdash; and both are in production. All the operational and strategic work &mdash; from discovery to release and support &mdash; is carried personally. That is what seniority looks like on AI projects: <span class="em">not a title, but the scope of responsibility and the quality of the result</span>.</p>
+      <p class="muted" style="margin-top:14px;">Related: <a href="ai-workflow.html">AI Workflow</a> &middot; <a href="needs-driven-development.html">Needs-Driven Development</a> &middot; <a href="from-instructions-to-platform.html">the prequel: from text instructions to a platform</a>.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Думка &middot; кар&rsquo;єрний шлях</span>
+      <h1>BA &rarr; AI Engineer: AI-проєкти без PO і PM</h1>
+      <p class="lede">На моїх AI-проєктах &mdash; ComfyAI та <a href="ai-workflow.html">AI Workflow</a> &mdash; <b>немає виділеного product owner-а і проєктного менеджера</b>. І вони релізяться. Це аргумент із досвіду: на AI-проєктах одна людина з сильною BA-базою і технічною шириною може нести весь цикл &mdash; і чому саме ця комбінація стала вхідною точкою AI-запитів у компанії.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Тип</div><div class="v">Думка<span class="sub">підкріплена релізами</span></div></div>
+        <div class="cell"><div class="k">Роль</div><div class="v">BA &rarr; AI Engineer<span class="sub">PO + PM + ARCH + QA в одному</span></div></div>
+        <div class="cell"><div class="k">Масштаб</div><div class="v">57 NEEDs &middot; 145+ TASKs<span class="sub">30+ REF-задач</span></div></div>
+        <div class="cell"><div class="k">Охоплення</div><div class="v">6 дирекцій<span class="sub">вхідна точка AI-задач компанії</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Теза</span></div>
+      <p class="thesis">На AI-проєктах класичний розподіл ролей перестає окупатися. Коли production-роботу виконують AI-агенти, робота людини &mdash; <span class="em">тримати весь цикл</span>: потребу, пріоритет, архітектуру, планку якості, скоуп. Розрізати цей цикл між PO, PM і BA означає повернути ті самі хендофи, які агенти щойно прибрали.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Чому це вдається</span>
+        <h2>BA-база плюс технічна ширина</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Сильні BA-навички</h3>
+          <p class="big">Можу спроектувати бізнес-процес, побачити моменти для автоматизації і зрозуміти, як зробити це максимально ефективно. Мислю <b>бізнес-логікою</b> &mdash; потребами, метриками, критеріями успіху &mdash; а не лише технічними деталями.</p>
+        </div>
+        <div class="panel">
+          <h3>Ширина технічних знань</h3>
+          <p class="big">Можу сам розгорнути сервіс на сервері, спроектувати систему, написати код &mdash; з помилками, але пишу і <b>доводжу до результату</b>. Це знімає блокери, на яких зазвичай застрягають AI-ініціативи на старті.</p>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:16px;">Завдяки цій комбінації до мене приходять не лише з ідеями «давайте додамо AI», а з конкретними бізнес-проблемами &mdash; і я можу провести їх увесь шлях від discovery до production.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Що я фактично роблю</span>
+        <h2>Поза рамками класичного BA</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">PO</span><div><h4>Формую беклог з нуля</h4><p>Сам пишу потреби (NEEDs), переводжу їх у технічні задачі (TASKs), описую acceptance criteria. У ComfyAI &mdash; 57 потреб, у AI Workflow &mdash; 145+ задач у беклозі, все за єдиною методологією.</p></div></div>
+        <div class="principle"><span class="idx">PO</span><div><h4>Пріоритизую</h4><p>Порядок реалізації за business value, залежностями і ризиками; high/medium/low плюс групи REF / NEED / TASK &mdash; для прозорого планування.</p></div></div>
+        <div class="principle"><span class="idx">PM</span><div><h4>Планую розробку і релізи</h4><p>Спринт-плани, milestones, release notes, синхронізація з командою &mdash; операційний ритм, який зазвичай веде PM.</p></div></div>
+        <div class="principle"><span class="idx">PM</span><div><h4>Веду власну методологію</h4><p><a href="needs-driven-development.html">Needs-Driven Development</a>: discovery &rarr; spec &rarr; MVP &rarr; iteration &rarr; metrics. Кожен NEED проходить повний цикл з артефактами на кожному етапі.</p></div></div>
+        <div class="principle"><span class="idx">ARCH</span><div><h4>Приймаю архітектурні рішення</h4><p>Monolith vs microservices, event-driven чи ні, фіча-флаги, self-learning vs hardcoded rules &mdash; обираю підходи, а технічні рішення фіналізую в парі з інженерією.</p></div></div>
+        <div class="principle"><span class="idx">QA</span><div><h4>Тримаю планку якості</h4><p>У AI Workflow вбудував рев&rsquo;ювер-агентів за skills-правилами &mdash; кожен артефакт перевіряється перед merge. Сам визначаю критерії якості для спек, дизайнів і коду.</p></div></div>
+        <div class="principle"><span class="idx">MVP</span><div><h4>Ріжу скоуп</h4><p>Що входить у v1, що чекає v2, що лишається в беклозі. MVP ComfyAI &mdash; 5 агентів замість «зробимо все одразу», тому й зарелізили швидко і нарощували ітеративно.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Побічний ефект</span>
+        <h2>Стати вхідною точкою AI-задач компанії</h2>
+        <p class="muted">За рік цей профіль перетворився на де-факто точку прийняття AI-запитів &mdash; далеко за межами мобайл-проєкту, де я формально BA. Запити приходять із шести напрямків:</p>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Команда дизайнерів</h4><p>AI-автоматизація дизайн-процесів і рутини.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>B2B кабінет постачальника</h4><p>AI-фічі та автоматизація процесів для команди B2B-кабінету.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Документообіг</h4><p>AI-обробка документів, класифікація, summarization.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>Команда адмінки</h4><p>AI-інтеграції в адмін-флоу, автоматизація операцій.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h4>Ecom (сайт + мобайл)</h4><p>Підбір товару, характеристики, переклад відгуків, порівняння, аналоги.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h4>Продакт-оунери</h4><p>Запити від PO з різних дирекцій &mdash; від discovery до готових технічних рішень.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Цифри</span>
+        <h2>Масштаб циклу однієї людини</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">57</div><div class="lab">NEEDs через власний NDD (ComfyAI)</div></div>
+        <div class="metric"><div class="fig">145<span class="u">+</span></div><div class="lab">TASKs у беклозі AI Workflow</div></div>
+        <div class="metric"><div class="fig">30<span class="u">+</span></div><div class="lab">REF-задач рефакторингу</div></div>
+        <div class="metric" style="border-right:none;"><div class="fig">6</div><div class="lab">дирекцій із AI-запитами</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Висновок</span>
+        <h2>Senior за відповідальністю, не за титулом</h2>
+      </div>
+      <p class="thesis">Ні в ComfyAI, ні в AI Workflow немає виділеного PO чи PM &mdash; і обидва в продакшені. Уся операційна і стратегічна робота &mdash; від discovery до релізу й підтримки &mdash; ведеться особисто. Так виглядає senior-рівень на AI-проєктах: <span class="em">не титул, а обсяг відповідальності та якість результату</span>.</p>
+      <p class="muted" style="margin-top:14px;">Повʼязане: <a href="ai-workflow.html">AI Workflow</a> &middot; <a href="needs-driven-development.html">Needs-Driven Development</a> &middot; <a href="from-instructions-to-platform.html">приквел: від текстових інструкцій до платформи</a>.</p>
+    </div>
+
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
+        root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
+      }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
+      });
+    })();
+  </script>
+
+</div>
+</body></html>
