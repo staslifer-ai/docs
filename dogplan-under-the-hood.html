@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DogPlan під капотом — інженерний кейс · Станіслав Ліфер</title>
+<meta name="description" content="Інженерний розбір DogPlan: Case Rules Engine для адаптації планів дресури, RAG на pgvector без LangChain, buddy state-machine, first-party аналітика. 38K рядків коду, 145+ ендпоінтів, 72% coverage, live на dogplan.net.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DogPlan під капотом — інженерний кейс">
+<meta property="og:description" content="Case Rules Engine, RAG на pgvector без LangChain, buddy state-machine, first-party аналітика. Соло-продукт live на dogplan.net.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/cynology-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/dogplan-under-the-hood.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+      <a href="cynology.html">Cynology world</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Engineering case study &middot; my own product</span>
+      <h1>DogPlan under the hood</h1>
+      <p class="lede">A live dog-training platform at <b>dogplan.net</b>: curated training plans that adapt to a specific dog, a <b>RAG-powered Q&amp;A chat</b>, a virtual pet with real game mechanics &mdash; built <b>solo</b>, end to end, with AI agents as the team.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Type</div><div class="v">AI product<span class="sub">SaaS, my own project</span></div></div>
+        <div class="cell"><div class="k">Status</div><div class="v">Live in production<span class="sub">dogplan.net &middot; HTTPS</span></div></div>
+        <div class="cell"><div class="k">Team</div><div class="v">Solo<span class="sub">product + code + ops</span></div></div>
+        <div class="cell"><div class="k">Stack</div><div class="v">FastAPI &middot; PostgreSQL<span class="sub">pgvector &middot; Redis &middot; vanilla JS</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">What it is</span></div>
+      <p class="thesis">DogPlan is not a chatbot that improvises training advice. Plans are <span class="em">curated content from a database</span>, adapted to the dog by a rules engine &mdash; and AI is applied only where it is genuinely strong: semantic search and contextual answers.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Core decision &middot; content over generation</span>
+        <h2>Case Rules Engine: plans that adapt without an LLM</h2>
+        <p class="muted">A training plan is a deep structure: plan &rarr; stages &rarr; exercises &rarr; text blocks. Generating it with an LLM would make quality unverifiable &mdash; a methodology risk you cannot ship to real dog owners.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>How it works</h3>
+          <p class="big">Base plans live in the DB as <b>templates</b>. When a user describes their dog (fear, reactivity, age, puppy&hellip;), the engine clones the template and applies <b>case rules</b> &mdash; <b>delete / replace / prepend / append</b> operations targeted at a stage, an exercise or a single text block.</p>
+        </div>
+        <div class="panel origin">
+          <h3>Why it matters</h3>
+          <p class="big"><b>16 curated cases, 126 adaptation rules</b> in production. Every adapted plan stays methodologically correct, because a cynologist curated both the base plan and the rules &mdash; the engine only transforms, it never invents.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">AI where it belongs</span>
+        <h2>RAG-powered Q&amp;A &mdash; without LangChain</h2>
+        <p class="muted">The in-plan chat answers user questions from a curated FAQ base. The whole RAG loop is raw SQL + asyncpg + pgvector &mdash; transparent, fast, debuggable.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>The pipeline</h3>
+          <p class="big">Question &rarr; <b>text-embedding-3-large</b> &rarr; cosine search over <b>pgvector (HNSW index)</b> &rarr; top-3 FAQ above a 0.5 similarity threshold &rarr; <b>gpt-4o</b> composes the answer with the user&rsquo;s plan as context.</p>
+        </div>
+        <div class="panel">
+          <h3>The details</h3>
+          <p class="big">52 curated FAQ entries, embedded once at load time; Redis caches embeddings. No framework magic &mdash; every step is a SQL query or an explicit API call you can log and profile.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Game mechanics</span>
+        <h2>Buddy: a virtual pet as a retention engine</h2>
+        <p class="muted">Training a real dog earns XP for a virtual one. Buddy is a proper state machine &mdash; energy, mood, hunger and cleanliness degrade over time; levels, streaks, coins, minigames (fetch, tug-of-war, puzzle), 8+ trainable commands with mastery and cooldowns, and 3D avatars in Three.js.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Product engineering</span>
+        <h2>The unglamorous parts that make it production</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Passwordless auth</h4><p>Email &rarr; 6-digit code (Redis, TTL) &rarr; JWT. No passwords for a mainstream audience of dog owners.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>First-party analytics</h4><p>Own tracker instead of Google Analytics: events batched (&le;50), rate-limited, client IP stored only as a salted SHA-256 hash. Admin dashboard with DAU, sessions and per-session timelines.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Feature flags</h4><p>Shop, game and knowledge base ship behind admin-managed flags &mdash; zero-downtime releases and reversible launches.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>PWA, zero-build frontend</h4><p>Vanilla JS SPA with a service worker, offline cache and install prompt. No bundler &mdash; the whole frontend deploys as static files.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h4>i18n by design</h4><p>Ukrainian + English across the stack: <code>*_translations</code> tables for every content type, locale JSON on the frontend, runtime placeholders like the dog&rsquo;s name.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h4>Async-first backend</h4><p>FastAPI + asyncpg pool + Redis cache, GZip (60&ndash;70% payload cut), gunicorn/uvicorn behind nginx on a unix socket, systemd + Certbot in production.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Scale &amp; quality</span>
+        <h2>The numbers</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">38<span class="u">K</span></div><div class="lab">lines of code &middot; 21K Python + 17K JS</div></div>
+        <div class="metric"><div class="fig">145<span class="u">+</span></div><div class="lab">API endpoints &middot; FastAPI v2</div></div>
+        <div class="metric"><div class="fig">64</div><div class="lab">DB tables &middot; PostgreSQL + pgvector</div></div>
+        <div class="metric"><div class="fig">126</div><div class="lab">adaptation rules &middot; 16 curated cases</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">162</div><div class="lab">tests &middot; unit + integration + e2e</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">72<span class="u">%</span></div><div class="lab">test coverage &middot; Playwright e2e</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">52</div><div class="lab">FAQ entries in the RAG base</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">2</div><div class="lab">languages &middot; UK + EN, full i18n</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">PostgreSQL 18</span>
+        <span class="chip">pgvector</span>
+        <span class="chip">asyncpg</span>
+        <span class="chip">Redis</span>
+        <span class="chip">OpenAI gpt-4o</span>
+        <span class="chip">text-embedding-3-large</span>
+        <span class="chip">vanilla JS &middot; PWA</span>
+        <span class="chip">Three.js</span>
+        <span class="chip">Playwright e2e</span>
+        <span class="chip">nginx &middot; systemd</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Takeaway</span>
+        <h2>What this case shows</h2>
+      </div>
+      <p class="thesis">One person can ship a full product &mdash; domain content model, RAG, game mechanics, analytics, auth, i18n, tests, deployment &mdash; when AI agents act as the team and the engineer keeps the <span class="em">architectural decisions</span>: where AI belongs, and where curated content and deterministic rules do the job better.</p>
+      <p class="muted" style="margin-top:14px;">Related: <a href="ai-workflow.html">AI Workflow &mdash; the multi-agent platform</a> &middot; <a href="dog-training-plans.html">how DogPlan training plans are structured (user-facing)</a> &middot; <a href="cynology.html">the Cynology world</a>.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+      <a href="cynology.html">Світ Кінологія</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Інженерний кейс &middot; власний продукт</span>
+      <h1>DogPlan під капотом</h1>
+      <p class="lede">Жива платформа дресури собак на <b>dogplan.net</b>: кураторські плани тренувань, що адаптуються під конкретного собаку, <b>RAG-чат запитань і відповідей</b>, віртуальний улюбленець зі справжніми ігровими механіками &mdash; зібрано <b>соло</b>, від коду до продакшену, з AI-агентами в ролі команди.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Тип</div><div class="v">AI-продукт<span class="sub">SaaS, власний проєкт</span></div></div>
+        <div class="cell"><div class="k">Статус</div><div class="v">Live у продакшені<span class="sub">dogplan.net &middot; HTTPS</span></div></div>
+        <div class="cell"><div class="k">Команда</div><div class="v">Соло<span class="sub">продукт + код + ops</span></div></div>
+        <div class="cell"><div class="k">Стек</div><div class="v">FastAPI &middot; PostgreSQL<span class="sub">pgvector &middot; Redis &middot; vanilla JS</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Що це</span></div>
+      <p class="thesis">DogPlan &mdash; не чат-бот, який імпровізує поради з дресури. Плани &mdash; це <span class="em">кураторський контент із бази даних</span>, який адаптує rules-движок, а AI застосований лише там, де він справді сильний: семантичний пошук і контекстні відповіді.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Ключове рішення &middot; контент, а не генерація</span>
+        <h2>Case Rules Engine: плани, що адаптуються без LLM</h2>
+        <p class="muted">План тренувань &mdash; глибока структура: план &rarr; етапи &rarr; вправи &rarr; текстові блоки. Генерувати його LLM-ом означало б неперевірювану якість &mdash; методологічний ризик, який не можна віддати реальним власникам собак.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Як працює</h3>
+          <p class="big">Базові плани лежать у БД як <b>шаблони</b>. Коли користувач описує свого собаку (страхи, реактивність, вік, цуценя&hellip;), движок клонує шаблон і застосовує <b>case rules</b> &mdash; операції <b>delete / replace / prepend / append</b>, націлені на етап, вправу або окремий текстовий блок.</p>
+        </div>
+        <div class="panel origin">
+          <h3>Чому це важливо</h3>
+          <p class="big"><b>16 кураторських кейсів, 126 правил адаптації</b> у продакшені. Кожен адаптований план лишається методологічно коректним, бо і базовий план, і правила курував кінолог &mdash; движок лише трансформує, нічого не вигадує.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">AI там, де йому місце</span>
+        <h2>RAG-чат &mdash; без LangChain</h2>
+        <p class="muted">Чат усередині плану відповідає на запитання з кураторської FAQ-бази. Весь RAG-цикл &mdash; це чистий SQL + asyncpg + pgvector: прозоро, швидко, зручно дебажити.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Пайплайн</h3>
+          <p class="big">Запитання &rarr; <b>text-embedding-3-large</b> &rarr; косинусний пошук у <b>pgvector (HNSW-індекс)</b> &rarr; top-3 FAQ з порогом схожості 0.5 &rarr; <b>gpt-4o</b> складає відповідь із планом користувача як контекстом.</p>
+        </div>
+        <div class="panel">
+          <h3>Деталі</h3>
+          <p class="big">52 кураторські FAQ-записи, ембедяться один раз при завантаженні; Redis кешує ембединги. Жодної фреймворк-магії &mdash; кожен крок це SQL-запит або явний API-виклик, який можна залогувати і запрофілювати.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Ігрові механіки</span>
+        <h2>Buddy: віртуальний улюбленець як механізм retention</h2>
+        <p class="muted">Тренування реального собаки дає XP віртуальному. Buddy &mdash; повноцінна state-machine: енергія, настрій, голод і чистота деградують із часом; рівні, стріки, монети, мініігри (fetch, перетягування, пазл), 8+ команд із майстерністю та cooldown-ами і 3D-аватари на Three.js.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Продуктова інженерія</span>
+        <h2>Негламурні частини, які роблять це продакшеном</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Passwordless-автентифікація</h4><p>Email &rarr; 6-значний код (Redis, TTL) &rarr; JWT. Без паролів &mdash; для масової аудиторії власників собак.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>First-party аналітика</h4><p>Власний трекер замість Google Analytics: події батчами (&le;50), rate-limit, IP клієнта зберігається лише як salted SHA-256 хеш. Адмін-дашборд із DAU, сесіями і таймлайном подій.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Фіча-флаги</h4><p>Магазин, гра і база знань виходять за адмін-керованими флагами &mdash; релізи без даунтайму і зворотні запуски.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>PWA, zero-build фронтенд</h4><p>Vanilla JS SPA із service worker, офлайн-кешем і встановленням як застосунок. Без бандлера &mdash; весь фронтенд деплоїться як статичні файли.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h4>i18n від початку</h4><p>Українська + англійська на всьому стеку: таблиці <code>*_translations</code> для кожного типу контенту, locale-JSON на фронтенді, run-time плейсхолдери на кшталт клички собаки.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h4>Async-first бекенд</h4><p>FastAPI + пул asyncpg + кеш Redis, GZip (&minus;60&ndash;70% payload), gunicorn/uvicorn за nginx на unix-сокеті, systemd + Certbot у продакшені.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Масштаб і якість</span>
+        <h2>Цифри</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">38<span class="u">K</span></div><div class="lab">рядків коду &middot; 21K Python + 17K JS</div></div>
+        <div class="metric"><div class="fig">145<span class="u">+</span></div><div class="lab">API-ендпоінтів &middot; FastAPI v2</div></div>
+        <div class="metric"><div class="fig">64</div><div class="lab">таблиці БД &middot; PostgreSQL + pgvector</div></div>
+        <div class="metric"><div class="fig">126</div><div class="lab">правил адаптації &middot; 16 кураторських кейсів</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">162</div><div class="lab">тести &middot; unit + інтеграційні + e2e</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">72<span class="u">%</span></div><div class="lab">покриття тестами &middot; Playwright e2e</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">52</div><div class="lab">FAQ-записи в RAG-базі</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">2</div><div class="lab">мови &middot; UA + EN, повний i18n</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python 3.12</span>
+        <span class="chip">FastAPI</span>
+        <span class="chip">PostgreSQL 18</span>
+        <span class="chip">pgvector</span>
+        <span class="chip">asyncpg</span>
+        <span class="chip">Redis</span>
+        <span class="chip">OpenAI gpt-4o</span>
+        <span class="chip">text-embedding-3-large</span>
+        <span class="chip">vanilla JS &middot; PWA</span>
+        <span class="chip">Three.js</span>
+        <span class="chip">Playwright e2e</span>
+        <span class="chip">nginx &middot; systemd</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Висновок</span>
+        <h2>Що показує цей кейс</h2>
+      </div>
+      <p class="thesis">Одна людина може відвантажити повний продукт &mdash; доменну модель контенту, RAG, ігрові механіки, аналітику, автентифікацію, i18n, тести й деплоймент &mdash; коли AI-агенти працюють як команда, а інженер лишає за собою <span class="em">архітектурні рішення</span>: де місце AI, а де кураторський контент і детерміновані правила справляються краще.</p>
+      <p class="muted" style="margin-top:14px;">Повʼязане: <a href="ai-workflow.html">AI Workflow &mdash; мультиагентна платформа</a> &middot; <a href="dog-training-plans.html">як влаштовані плани тренувань DogPlan (для користувачів)</a> &middot; <a href="cynology.html">світ Кінологія</a>.</p>
+    </div>
+
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
+        root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
+      }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
+      });
+    })();
+  </script>
+
+</div>
+</body></html>
