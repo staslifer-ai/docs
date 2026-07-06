@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Від текстових інструкцій до multi-agent платформи · Станіслав Ліфер</title>
+<meta name="description" content="Приквел до AI Workflow: як текстові AI-інструкції (Spec Coding + Amazon Working Backwards) відвантажили production-адмінку без агентів — і чому їхні межі вимагали multi-agent платформи.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Від текстових інструкцій до multi-agent платформи">
+<meta property="og:description" content="Приквел до AI Workflow: production-адмінка на самих текстових інструкціях — і межі, що вимагали агентів.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/from-instructions-to-platform.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="canonical" href="https://staslifer-ai.github.io/docs/from-instructions-to-platform.html">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Від текстових інструкцій до multi-agent платформи", "inLanguage": "uk", "url": "https://staslifer-ai.github.io/docs/from-instructions-to-platform.html", "image": "https://staslifer-ai.github.io/docs/assets/og-cover.png", "author": {"@type": "Person", "name": "Stanislav Lifer", "alternateName": "Станіслав Ліфер", "jobTitle": "AI Engineer", "url": "https://staslifer-ai.github.io/docs/", "sameAs": ["https://linkedin.com/in/staslifer"]}}</script>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">The prequel to AI Workflow</span>
+      <h1>From text instructions to a multi-agent platform</h1>
+      <p class="lede">Before the <a href="ai-workflow.html">AI Workflow platform</a> there were <b>plain text AI instructions</b> &mdash; and they shipped a production admin panel that Comfy still runs. This is the story of the proof of concept, its limits, and why those limits demanded agents.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Type</div><div class="v">Origin story<span class="sub">how the platform was born</span></div></div>
+        <div class="cell"><div class="k">Artifact</div><div class="v">Production admin panel<span class="sub">built with zero agents</span></div></div>
+        <div class="cell"><div class="k">Method</div><div class="v">Spec Coding<span class="sub">+ Amazon Working Backwards</span></div></div>
+        <div class="cell"><div class="k">Outcome</div><div class="v">AI Workflow<span class="sub">the multi-agent successor</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">The claim</span></div>
+      <p class="thesis">Platforms don&rsquo;t appear from nowhere. AI Workflow started as a set of <span class="em">carefully written text instructions</span> &mdash; effectively version zero of the platform, with no agents at all. It proved the core idea: AI can write production code, if you give it the right instructions and a real methodology.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The two methods</span>
+        <h2>Spec first. User experience first.</h2>
+        <p class="muted">The instruction set covered two complementary methodologies &mdash; one keeps the AI inside the architecture, the other keeps it inside the user&rsquo;s problem.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>01 &middot; Spec Coding</h3>
+          <p class="big">Full specification first, code generation second. The instructions pin down the <b>artifact structure, the API contract, naming rules and the code-generation format</b> &mdash; so the AI stays inside the architecture instead of improvising one.</p>
+        </div>
+        <div class="panel">
+          <h3>02 &middot; Amazon Working Backwards</h3>
+          <p class="big">Start from the finished user experience &mdash; <b>press release first, FAQ-driven design</b> &mdash; and move backwards to the technical solution, with crisp problem definition and task decomposition on the way.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The proof</span>
+        <h2>A production admin panel &mdash; with zero agents</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>What shipped</h3>
+          <p class="big">Through these text instructions alone, a <b>production admin panel</b> was built and is used by the company today. No multi-agent system, no orchestration &mdash; just instructions and methodology. That was the proof of concept.</p>
+        </div>
+        <div class="panel">
+          <h3>What it proved</h3>
+          <p class="big">The bottleneck wasn&rsquo;t the model&rsquo;s ability to write code. It was <b>everything around the code</b>: holding context, reviewing quality, running parallel roles. Exactly the things a methodology encodes &mdash; and a single prompt can&rsquo;t.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The limits</span>
+        <h2>Where text instructions hit the wall</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Context doesn&rsquo;t hold</h4><p>On a large project a single instruction set can&rsquo;t keep the whole picture &mdash; the AI drifts from the architecture as the codebase grows.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>Nobody reviews</h4><p>The same &ldquo;head&rdquo; writes and checks the work. There is no independent reviewer for security, performance or business requirements.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>No parallel roles</h4><p>PM thinking, analysis, design, coding and testing are different jobs. One linear conversation forces them into one sequential blur.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>Process lives in a person</h4><p>The methodology worked because a human enforced it every time. It didn&rsquo;t scale beyond its author &mdash; the process had to become the system.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The evolution</span>
+        <h2>Instructions became agents</h2>
+      </div>
+      <p class="thesis">Every limit mapped to a design decision in the next system: context &rarr; <span class="em">named artifacts passed between stages</span>; no reviewer &rarr; <span class="em">a dedicated review agent at every stage</span>; no parallel roles &rarr; <span class="em">specialized agents with clear roles</span>; process-in-a-person &rarr; <span class="em">a pipeline that enforces the methodology itself</span>. That system is <a href="ai-workflow.html">AI Workflow</a>.</p>
+      <p class="muted" style="margin-top:14px;">Related: <a href="ai-workflow.html">AI Workflow &mdash; the multi-agent platform</a> &middot; <a href="needs-driven-development.html">Needs-Driven Development &mdash; the methodology</a>.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Приквел до AI Workflow</span>
+      <h1>Від текстових інструкцій до multi-agent платформи</h1>
+      <p class="lede">До <a href="ai-workflow.html">платформи AI Workflow</a> були <b>звичайні текстові AI-інструкції</b> &mdash; і вони відвантажили production-адмінку, якою Comfy користується досі. Це історія доказу концепції, його меж &mdash; і чому ці межі вимагали агентів.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Тип</div><div class="v">Історія походження<span class="sub">як народилася платформа</span></div></div>
+        <div class="cell"><div class="k">Артефакт</div><div class="v">Production-адмінка<span class="sub">збудована без жодного агента</span></div></div>
+        <div class="cell"><div class="k">Метод</div><div class="v">Spec Coding<span class="sub">+ Amazon Working Backwards</span></div></div>
+        <div class="cell"><div class="k">Результат</div><div class="v">AI Workflow<span class="sub">multi-agent наступник</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Теза</span></div>
+      <p class="thesis">Платформи не з&rsquo;являються з нізвідки. AI Workflow починався як набір <span class="em">ретельно написаних текстових інструкцій</span> &mdash; фактично нульова версія платформи, взагалі без агентів. Вони довели головне: AI може писати production-код, якщо дати йому правильні інструкції та справжню методологію.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Два методи</span>
+        <h2>Спочатку специфікація. Спочатку користувач.</h2>
+        <p class="muted">Набір інструкцій покривав дві взаємодоповнювальні методології: одна тримає AI у рамках архітектури, друга &mdash; у рамках проблеми користувача.</p>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>01 &middot; Spec Coding</h3>
+          <p class="big">Спочатку повна специфікація, потім генерація коду. Інструкції фіксують <b>структуру артефактів, контракт API, правила іменування та формат генерації коду</b> &mdash; тож AI лишається всередині архітектури, а не імпровізує власну.</p>
+        </div>
+        <div class="panel">
+          <h3>02 &middot; Amazon Working Backwards</h3>
+          <p class="big">Почати з готового користувацького досвіду &mdash; <b>press release first, FAQ-driven design</b> &mdash; і рухатися назад до технічного рішення, з чітким визначенням проблеми та декомпозицією задач дорогою.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Доказ</span>
+        <h2>Production-адмінка &mdash; без жодного агента</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>Що відвантажили</h3>
+          <p class="big">Лише через ці текстові інструкції була збудована <b>production-адмінка</b>, якою компанія користується сьогодні. Без multi-agent системи, без оркестрації &mdash; тільки інструкції та методологія. Це й був доказ концепції.</p>
+        </div>
+        <div class="panel">
+          <h3>Що це довело</h3>
+          <p class="big">Вузьким місцем була не здатність моделі писати код. А <b>все навколо коду</b>: утримання контексту, рев&rsquo;ю якості, паралельні ролі. Саме те, що кодує методологія &mdash; і чого не вміє один промпт.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Межі</span>
+        <h2>Де текстові інструкції вперлися в стіну</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Контекст не тримається</h4><p>На великому проєкті один набір інструкцій не втримує всю картину &mdash; AI дрейфує від архітектури разом зі зростанням кодової бази.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>Ніхто не рев&rsquo;юїть</h4><p>Та сама «голова» і пише, і перевіряє. Немає незалежного рев&rsquo;ювера на security, performance чи бізнес-вимоги.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Немає паралельних ролей</h4><p>PM-мислення, аналіз, дизайн, код і тестування &mdash; різні роботи. Одна лінійна розмова змішує їх в один послідовний потік.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>Процес живе в людині</h4><p>Методологія працювала, бо людина щоразу її дотримувалась. Це не масштабується поза автором &mdash; процес мав стати системою.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Еволюція</span>
+        <h2>Інструкції стали агентами</h2>
+      </div>
+      <p class="thesis">Кожна межа перетворилася на дизайн-рішення наступної системи: контекст &rarr; <span class="em">іменовані артефакти між етапами</span>; відсутність рев&rsquo;ювера &rarr; <span class="em">окремий review-агент на кожному етапі</span>; відсутність паралельних ролей &rarr; <span class="em">спеціалізовані агенти з чіткими ролями</span>; процес-у-людині &rarr; <span class="em">пайплайн, який сам виконує методологію</span>. Ця система &mdash; <a href="ai-workflow.html">AI Workflow</a>.</p>
+      <p class="muted" style="margin-top:14px;">Повʼязане: <a href="ai-workflow.html">AI Workflow &mdash; мультиагентна платформа</a> &middot; <a href="needs-driven-development.html">Needs-Driven Development &mdash; методологія</a>.</p>
+    </div>
+
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
+        root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
+      }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
+      });
+    })();
+  </script>
+
+</div>
+</body></html>
