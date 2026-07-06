@@ -319,6 +319,11 @@
   }
   /* ---------- articles hub ---------- */
   .articles-hub{padding:clamp(40px,7vw,84px) 0 24px}
+  .hub-filter{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 30px}
+  .hub-filter button{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.4px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;transition:.2s}
+  .hub-filter button:hover{color:var(--text);border-color:#3a3a5c}
+  .hub-filter button.on{background:var(--grad);color:#fff;border-color:transparent}
+  .art-card.hide{display:none}
   a.art-card{text-decoration:none;color:inherit;cursor:pointer}
   a.art-card:hover h3{color:var(--p2)}
   a.art-card .proj-link{display:inline-block;margin-top:16px;pointer-events:none}
@@ -386,9 +391,15 @@
       <h1 class="hub-h1" data-en="My <span class='grad-text'>articles</span>">Мої <span class="grad-text">статті</span></h1>
       <p class="lead" data-en="Long-form write-ups on the AI systems and the methodology I build &mdash; the thinking behind the projects.">Розгорнуті матеріали про AI-системи та методологію, які я будую &mdash; мислення за проєктами.</p>
     </div>
+    <div class="hub-filter" role="group" aria-label="Filter">
+      <button type="button" class="on" data-kind="all" data-en="All">Всі</button>
+      <button type="button" data-kind="article" data-en="Articles">Статті</button>
+      <button type="button" data-kind="case" data-en="Cases">Кейси</button>
+      <button type="button" data-kind="method" data-en="Methodology">Методологія</button>
+    </div>
     <div class="projects">
 
-      <a class="proj reveal art-card" href="ai-workflow.html">
+      <a class="proj reveal art-card" href="ai-workflow.html" data-kind="article">
         <div class="proj-top">
           <span class="proj-ic">&#9889;</span>
           <div style="flex:1;min-width:200px">
@@ -402,7 +413,7 @@
         <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
       </a>
 
-      <a class="proj reveal art-card" href="needs-driven-development.html">
+      <a class="proj reveal art-card" href="needs-driven-development.html" data-kind="method">
         <div class="proj-top">
           <span class="proj-ic">&#127919;</span>
           <div style="flex:1;min-width:200px">
@@ -416,7 +427,7 @@
         <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
       </a>
 
-      <a class="proj reveal art-card" href="ba-ai-toolkit.html">
+      <a class="proj reveal art-card" href="ba-ai-toolkit.html" data-kind="article">
         <div class="proj-top">
           <span class="proj-ic">&#127908;</span>
           <div style="flex:1;min-width:200px">
@@ -430,7 +441,7 @@
         <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
       </a>
 
-      <a class="proj reveal art-card" href="one-doc-three-teams.html">
+      <a class="proj reveal art-card" href="one-doc-three-teams.html" data-kind="case">
         <div class="proj-top">
           <span class="proj-ic">&#128203;</span>
           <div style="flex:1;min-width:200px">
@@ -444,7 +455,7 @@
         <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
       </a>
 
-      <a class="proj reveal art-card" href="search-dashboard.html">
+      <a class="proj reveal art-card" href="search-dashboard.html" data-kind="case">
         <div class="proj-top">
           <span class="proj-ic">&#128202;</span>
           <div style="flex:1;min-width:200px">
@@ -458,7 +469,7 @@
         <span class="proj-link" data-en="Read &rarr;">Читати &rarr;</span>
       </a>
 
-      <a class="proj reveal art-card" href="dogplan-under-the-hood.html">
+      <a class="proj reveal art-card" href="dogplan-under-the-hood.html" data-kind="case">
         <div class="proj-top">
           <span class="proj-ic">&#128021;</span>
           <div style="flex:1;min-width:200px">
@@ -511,6 +522,18 @@ const revObs = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('vis'); revObs.unobserve(e.target); }});
 },{threshold:0.12});
 document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+// ---------- hub filter ----------
+document.querySelectorAll('.hub-filter button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.hub-filter button').forEach(b=>b.classList.toggle('on',b===btn));
+    const k=btn.dataset.kind;
+    document.querySelectorAll('.art-card').forEach(c=>{
+      const show = (k==='all'||c.dataset.kind===k);
+      c.classList.toggle('hide',!show);
+      if(show){c.classList.add('vis');}
+    });
+  });
+});
 // ---------- restore language ----------
 try{ const saved = localStorage.getItem('lifer-lang'); if(saved==='en') setLang('en'); }catch(e){}
 </script>
