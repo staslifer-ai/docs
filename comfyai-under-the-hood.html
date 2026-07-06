@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComfyAI під капотом — інженерний deep-dive · Станіслав Ліфер</title>
+<meta name="description" content="Інженерний розбір ComfyAI: 5 AI-агентів, 6 мікросервісів, self-learning класифікатор через Nova Micro, pattern routing, anti-hallucination guardrails. 45K+ рядків Python, збудовано через AI Workflow — AI робить AI.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ComfyAI під капотом — інженерний deep-dive">
+<meta property="og:description" content="5 AI-агентів, 6 мікросервісів, self-learning класифікатор, guardrails. 45K+ рядків, збудовано через AI Workflow.">
+<meta property="og:image" content="https://staslifer-ai.github.io/docs/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://staslifer-ai.github.io/docs/comfyai-under-the-hood.html">
+<meta name="og:site_name" content="Stanislav Lifer">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="canonical" href="https://staslifer-ai.github.io/docs/comfyai-under-the-hood.html">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "ComfyAI під капотом — інженерний deep-dive", "inLanguage": "uk", "url": "https://staslifer-ai.github.io/docs/comfyai-under-the-hood.html", "image": "https://staslifer-ai.github.io/docs/assets/og-cover.png", "author": {"@type": "Person", "name": "Stanislav Lifer", "alternateName": "Станіслав Ліфер", "jobTitle": "AI Engineer", "url": "https://staslifer-ai.github.io/docs/", "sameAs": ["https://linkedin.com/in/staslifer"]}}</script>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --paper-2: #ffffff;
+    --ink: #16181d;
+    --ink-2: #565b66;
+    --ink-3: #8a8f9a;
+    --line: #dadde3;
+    --line-2: #e7e9ee;
+    --accent: #0f5c6b;
+    --accent-2: #127d8e;
+    --accent-wash: #e9f1f2;
+    --pass: #2e7d5b;
+    --return: #b4532a;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Consolas", ui-monospace, Menlo, monospace;
+    --maxw: 900px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .ndd {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(16px, 4vw, 40px) clamp(16px, 5vw, 40px) 96px;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd p { margin: 0; }
+  .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+  .ndd a { color: var(--accent); font-weight: 600; }
+
+  /* ---- language toggle ---- */
+  .lang-toggle { position: sticky; top: 10px; z-index: 30; max-width: var(--maxw); margin: 0 auto 26px; display: flex; justify-content: flex-end; }
+  .lang-toggle .grp { display: flex; border: 1px solid var(--ink); background: var(--paper-2); box-shadow: 0 2px 10px rgba(22,24,29,0.06); }
+  .lang-toggle button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; padding: 7px 15px; background: transparent; border: none; color: var(--ink-2); cursor: pointer; }
+  .lang-toggle button.active { background: var(--ink); color: var(--paper); }
+  .lang-toggle button + button { border-left: 1px solid var(--line); }
+  .lang-toggle button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .ndd [data-lang-block] { display: none; }
+  .ndd[data-lang="en"] [data-lang-block="en"] { display: block; }
+  .ndd[data-lang="uk"] [data-lang-block="uk"] { display: block; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .masthead .eyebrow {
+    display: inline-flex; align-items: center; align-self: flex-start;
+    background: var(--accent); color: #fff;
+    padding: 9px 17px 9px 15px; border-radius: 999px;
+    font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
+    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+  }
+  .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
+  .muted { color: var(--ink-2); }
+
+  /* ---- Masthead ---- */
+  .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
+  .masthead .lede b { color: var(--ink); font-weight: 600; }
+
+  .meta { margin-top: 6px; border: 1px solid var(--line); background: var(--paper-2); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .meta .cell { padding: 14px 16px; border-right: 1px solid var(--line-2); }
+  .meta .cell:last-child { border-right: none; }
+  .meta .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .meta .v { margin-top: 5px; font-size: 15px; font-weight: 600; }
+  .meta .v .sub { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+
+  /* ---- Section scaffolding ---- */
+  .sec { margin-top: clamp(46px, 7vw, 74px); }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head .muted { font-size: 15px; max-width: 64ch; }
+
+  /* ---- Definition band ---- */
+  .thesis { border-left: 3px solid var(--accent); padding: 4px 0 4px 22px; font-family: var(--serif); font-size: clamp(20px, 2.9vw, 26px); line-height: 1.42; }
+  .thesis .em { color: var(--accent); font-style: italic; }
+
+  /* ---- Two columns ---- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--paper-2); border: 1px solid var(--line); padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel.origin { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .panel h3 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+  .panel.origin h3 { color: var(--accent); }
+  .panel .note { font-size: 14px; color: var(--ink-2); }
+  .panel .big { font-size: 15.5px; line-height: 1.5; }
+  .panel .big b { font-weight: 600; }
+
+  /* ---- Pipeline diagram ---- */
+  .pipe-frame { border: 1px solid var(--line); background: var(--paper-2); padding: 22px; }
+  .pipe-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .pipe { display: flex; align-items: stretch; gap: 6px; min-width: max-content; }
+  .node { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 9px 12px; border: 1px solid var(--ink); background: var(--paper-2); white-space: nowrap; display: flex; align-items: center; }
+  .node.review { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .node.commit { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .arrow { display: flex; align-items: center; color: var(--ink-3); font-family: var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 26px; margin-top: 20px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 12px; border: 1px solid var(--ink); flex: none; }
+  .swatch.review { border-style: dashed; border-color: var(--accent); }
+  .swatch.commit { background: var(--ink); }
+  .swatch.return { border: none; height: 0; border-top: 2px solid var(--return); width: 22px; }
+  .pipe-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+  .pipe-notes .pn h3 { font-size: 14px; margin-bottom: 5px; }
+  .pipe-notes .pn p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+  .pipe-notes .pn .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--return); }
+
+  /* ---- Metrics ---- */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+  .metric { padding: 20px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+  .metric .fig { font-family: var(--serif); font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .metric .lab { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.35; }
+  .metric .fig .u { font-size: 17px; color: var(--accent); }
+
+  /* ---- Principles / capabilities ---- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px; }
+  .principle { display: grid; grid-template-columns: auto 1fr; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .principle .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; padding-top: 2px; }
+  .principle h3 { font-size: 16px; margin-bottom: 4px; }
+  .principle p { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---- Stack strip ---- */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); }
+
+  /* ---- Summit photos ---- */
+  .summit { margin-top: 26px; border: 1px solid var(--line); background: var(--paper-2); padding: 16px; }
+  .summit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .summit-grid img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; }
+  .summit-cap { margin-top: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); }
+  @media (max-width: 720px) { .summit-grid { grid-template-columns: 1fr; } }
+
+  /* ---- Highlights block ---- */
+  .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
+  .resume .eyebrow { color: #7fd0d8; }
+  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
+  .resume a { color: #7fd0d8; }
+  .bullets { display: flex; flex-direction: column; gap: 16px; }
+  .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
+  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet b { color: #fff; font-weight: 600; }
+
+  /* ---- Attribution footer ---- */
+  .attrib { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .attrib .row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; font-size: 14px; }
+  .attrib .row .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 3px; }
+  .attrib .row .v { color: var(--ink); }
+  .attrib .row .v b { font-weight: 600; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-3); margin-top: 12px; line-height: 1.5; }
+
+  @media (max-width: 720px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .meta .cell:nth-child(2) { border-right: none; }
+    .meta .cell { border-bottom: 1px solid var(--line-2); }
+    .cols2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metric:nth-child(2n) { border-right: none; }
+    .principles { grid-template-columns: 1fr; }
+    .pipe-notes { grid-template-columns: 1fr; }
+    .attrib .row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ---- site back-nav ---- */
+  .sitebar { display: flex; gap: 20px; align-items: center; margin: 0 0 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em; }
+  .sitebar a { color: var(--ink-2); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+  .sitebar a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+<div class="ndd" id="ndd-root" data-lang="uk">
+
+  <div class="lang-toggle">
+    <div class="grp" role="group" aria-label="Language">
+      <button type="button" data-set="uk" class="active" aria-pressed="true">УКР</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <!-- ============================= ENGLISH ============================= -->
+  <div class="wrap" data-lang-block="en">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Resume</a>
+      <a href="articles.html">All articles</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Engineering deep-dive &middot; production</span>
+      <h1>ComfyAI under the hood</h1>
+      <p class="lede">A microservice production platform for Comfy customer support: <b>5 AI agents, 6 microservices, a self-learning classifier</b> &mdash; and a meta-twist: the system was built through the <a href="ai-workflow.html">AI Workflow</a> platform. AI making AI.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Type</div><div class="v">Support platform<span class="sub">production &middot; Comfy e-com</span></div></div>
+        <div class="cell"><div class="k">Scale</div><div class="v">45K+ lines of Python<span class="sub">377 commits &middot; 6 months</span></div></div>
+        <div class="cell"><div class="k">AI stack</div><div class="v">AWS Bedrock<span class="sub">Nova Micro &middot; Knowledge Base</span></div></div>
+        <div class="cell"><div class="k">Data</div><div class="v">MongoDB &middot; Redis<span class="sub">S3 + Athena analytics</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">What it is</span></div>
+      <p class="thesis">The signature trick: the system <span class="em">teaches itself</span>. When classifier confidence drops, an AI generation of new keywords is triggered through Amazon Nova Micro &mdash; validated and saved to MongoDB. No engineer in the loop.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Architecture</span>
+        <h2>Six microservices, each with one job</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">:8000</span><div><h4>Orchestrator</h4><p>Router, classifier, session state in Redis, LLM greeting, and the Smart Learning Pipeline.</p></div></div>
+        <div class="principle"><span class="idx">:8001</span><div><h4>FAQ Agent</h4><p>General questions via AWS Bedrock Knowledge Base (Nova Micro).</p></div></div>
+        <div class="principle"><span class="idx">:8002</span><div><h4>Customers Agent</h4><p>Personal data: bonuses, coupons, orders &mdash; behind JWT auth.</p></div></div>
+        <div class="principle"><span class="idx">:8003</span><div><h4>Product Agent</h4><p>Product search, gifts, analogues, characteristics, comparisons.</p></div></div>
+        <div class="principle"><span class="idx">:8004</span><div><h4>Analytics</h4><p>Events API, S3/Athena, business dashboard, WebSocket real-time.</p></div></div>
+        <div class="principle"><span class="idx">:8080</span><div><h4>Web Chat</h4><p>The widget: Markdown, Quick Replies, Stories, navigation cards.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The interesting parts</span>
+        <h2>Self-learning, routing, guardrails</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>Self-learning classifier</h3>
+          <p class="big"><b>5 types of smart triggers</b> (low confidence, ambiguous keyword, intent mismatch&hellip;) fire background learning through Nova Micro &mdash; new keywords are generated, validated and stored without blocking the user or waking an engineer.</p>
+        </div>
+        <div class="panel">
+          <h3>Pattern routing with priorities</h3>
+          <p class="big"><b>9 regex patterns with priorities 70&ndash;110</b>: Gift, Return, Personal, Purchase, Greeting, Catalog, Characteristics, Analog, Reviews. Deterministic first, LLM second &mdash; cheap and predictable where possible.</p>
+        </div>
+        <div class="panel">
+          <h3>Anti-hallucination guardrails</h3>
+          <p class="big">FAQ KB guardrails against LLM confabulation (&ldquo;COMFY doesn&rsquo;t sell iPhones&rdquo;-class errors): a content audit of the knowledge base plus hard answer rules.</p>
+        </div>
+        <div class="panel">
+          <h3>Contextual greeting v2</h3>
+          <p class="big">LLM greetings with localStorage persistence, guest&rarr;auth transition, skip-discovery via entity extraction and a 5-minute anti-spam cooldown.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Product features</span>
+        <h2>What the user actually sees</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Gift picker dialog</h4><p>A 4-step Quick Replies flow &mdash; age &rarr; gender &rarr; interests &rarr; budget &mdash; ending in personalized catalog recommendations.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>Analogue search</h4><p>Three price bands to choose from &mdash; cheaper &middot; similar &middot; pricier &mdash; via Bloomreach API and price coefficients.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Product comparison</h4><p>A characteristics table for 2+ products right in the chat, with differences highlighted and PDP buttons.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>Plain-language specs</h4><p>AI explains technical characteristics in simple words &mdash; nobody has to google &ldquo;what is an IPS panel&rdquo;.</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h4>Reviews summary</h4><p>Key pros and cons distilled from customer reviews instead of reading hundreds of comments.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h4>Rich chat UI</h4><p>Product carousels, 6 types of Quick Replies, iOS-style Stories, navigation links for authorized users, proactive PDP suggestions.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">The meta-story</span>
+        <h2>AI making AI &mdash; and the BA contribution</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>Built through AI Workflow</h3>
+          <p class="big">Task artifacts for ComfyAI &mdash; BA specs, designs, tests &mdash; were generated by the PM/BA/Design/Dev/QA/Perf agents of <a href="ai-workflow.html">AI Workflow</a>, with skills-based review. The tool became a production product; the product was built by the tool.</p>
+        </div>
+        <div class="panel">
+          <h3>Full-cycle BA work</h3>
+          <p class="big">Discovery, <b>57 NEEDs</b> under <a href="needs-driven-development.html">Needs-Driven Development</a>, MVP scope (5 agents instead of &ldquo;everything at once&rdquo;), dialogue UX and Quick Replies design. Several AI features piloted here are now being rolled into the Comfy e-com app.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Scale &amp; delivery</span>
+        <h2>The numbers</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">45<span class="u">K+</span></div><div class="lab">lines of Python</div></div>
+        <div class="metric"><div class="fig">377</div><div class="lab">git commits &middot; 6 months</div></div>
+        <div class="metric"><div class="fig">5</div><div class="lab">AI agents</div></div>
+        <div class="metric"><div class="fig">6</div><div class="lab">microservices</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">57</div><div class="lab">NEEDs via NDD</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">9</div><div class="lab">routing patterns &middot; priorities 70&ndash;110</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">6</div><div class="lab">Quick Replies types</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">5</div><div class="lab">self-learning trigger types</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python</span><span class="chip">FastAPI</span><span class="chip">AWS Bedrock</span><span class="chip">Nova Micro</span><span class="chip">MongoDB</span><span class="chip">Redis</span><span class="chip">S3 + Athena</span><span class="chip">WebSocket</span><span class="chip">JWT</span><span class="chip">Bloomreach API</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Takeaway</span>
+        <h2>What this case shows</h2>
+      </div>
+      <p class="thesis">A production multi-agent system is mostly <span class="em">not</span> about the LLM: it&rsquo;s deterministic routing before generation, guardrails around the knowledge base, self-learning that never blocks the user, and product features designed from real dialogue UX. The LLM is one component &mdash; the engineering around it is the platform.</p>
+      <p class="muted" style="margin-top:14px;">Related: <a href="ai-workflow.html">AI Workflow &mdash; the platform that built this</a> &middot; <a href="ba-to-ai-engineer.html">BA &rarr; AI Engineer: no PO, no PM</a> &middot; <a href="dogplan-under-the-hood.html">DogPlan under the hood</a>.</p>
+    </div>
+
+  </div>
+
+  <!-- ============================= УКРАЇНСЬКА ============================= -->
+  <div class="wrap" data-lang-block="uk">
+
+    <nav class="sitebar" aria-label="Site">
+      <a href="index.html">&larr; Резюме</a>
+      <a href="articles.html">Всі статті</a>
+    </nav>
+
+    <header class="masthead">
+      <span class="eyebrow">Інженерний deep-dive &middot; production</span>
+      <h1>ComfyAI під капотом</h1>
+      <p class="lede">Мікросервісна production-платформа підтримки клієнтів Comfy: <b>5 AI-агентів, 6 мікросервісів, self-learning класифікатор</b> &mdash; і мета-поворот: система розроблялась через платформу <a href="ai-workflow.html">AI Workflow</a>. AI робить AI.</p>
+      <div class="meta">
+        <div class="cell"><div class="k">Тип</div><div class="v">Платформа підтримки<span class="sub">production &middot; Comfy e-com</span></div></div>
+        <div class="cell"><div class="k">Масштаб</div><div class="v">45K+ рядків Python<span class="sub">377 комітів &middot; 6 місяців</span></div></div>
+        <div class="cell"><div class="k">AI-стек</div><div class="v">AWS Bedrock<span class="sub">Nova Micro &middot; Knowledge Base</span></div></div>
+        <div class="cell"><div class="k">Дані</div><div class="v">MongoDB &middot; Redis<span class="sub">S3 + Athena аналітика</span></div></div>
+      </div>
+    </header>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Що це</span></div>
+      <p class="thesis">Ключова фішка: система <span class="em">сама себе навчає</span>. Коли впевненість класифікатора падає, тригериться AI-генерація нових ключових слів через Amazon Nova Micro &mdash; з валідацією та збереженням у MongoDB. Без інженера в циклі.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Архітектура</span>
+        <h2>Шість мікросервісів, у кожного одна робота</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">:8000</span><div><h4>Orchestrator</h4><p>Маршрутизатор, класифікатор, сесії в Redis, LLM-привітання і Smart Learning Pipeline.</p></div></div>
+        <div class="principle"><span class="idx">:8001</span><div><h4>FAQ Agent</h4><p>Загальні питання через AWS Bedrock Knowledge Base (Nova Micro).</p></div></div>
+        <div class="principle"><span class="idx">:8002</span><div><h4>Customers Agent</h4><p>Персональні дані: бонуси, купони, замовлення &mdash; за JWT-автентифікацією.</p></div></div>
+        <div class="principle"><span class="idx">:8003</span><div><h4>Product Agent</h4><p>Пошук товарів, подарунки, аналоги, характеристики, порівняння.</p></div></div>
+        <div class="principle"><span class="idx">:8004</span><div><h4>Analytics</h4><p>Events API, S3/Athena, бізнес-дашборд, WebSocket real-time.</p></div></div>
+        <div class="principle"><span class="idx">:8080</span><div><h4>Web Chat</h4><p>Віджет: Markdown, Quick Replies, Stories, навігаційні картки.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Найцікавіше</span>
+        <h2>Self-learning, роутинг, guardrails</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>Self-learning класифікатор</h3>
+          <p class="big"><b>5 типів smart-тригерів</b> (low confidence, ambiguous keyword, intent mismatch&hellip;) запускають фонове навчання через Nova Micro &mdash; нові ключові слова генеруються, валідуються і зберігаються, не блокуючи користувача і не будячи інженера.</p>
+        </div>
+        <div class="panel">
+          <h3>Pattern Routing із пріоритетами</h3>
+          <p class="big"><b>9 regex-патернів із пріоритетами 70&ndash;110</b>: Gift, Return, Personal, Purchase, Greeting, Catalog, Characteristics, Analog, Reviews. Спершу детерміноване, потім LLM &mdash; дешево і передбачувано там, де можливо.</p>
+        </div>
+        <div class="panel">
+          <h3>Anti-hallucination guardrails</h3>
+          <p class="big">FAQ KB guardrails проти вигадок LLM (помилки класу «COMFY не продає айфони»): аудит контенту бази знань плюс жорсткі правила відповідей.</p>
+        </div>
+        <div class="panel">
+          <h3>Contextual Greeting v2</h3>
+          <p class="big">LLM-привітання з localStorage-персистентністю, Guest&rarr;Auth Transition, Skip Discovery через entity extraction і 5-хвилинний anti-spam cooldown.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Продуктові фічі</span>
+        <h2>Що бачить користувач</h2>
+      </div>
+      <div class="principles">
+        <div class="principle"><span class="idx">01</span><div><h4>Діалог підбору подарунка</h4><p>4-етапний флоу на Quick Replies &mdash; вік &rarr; стать &rarr; інтереси &rarr; бюджет &mdash; із персоналізованою рекомендацією з каталогу.</p></div></div>
+        <div class="principle"><span class="idx">02</span><div><h4>Пошук аналогів</h4><p>Три цінові діапазони на вибір &mdash; дешевше &middot; аналогічно &middot; дорожче &mdash; через Bloomreach API і цінові коефіцієнти.</p></div></div>
+        <div class="principle"><span class="idx">03</span><div><h4>Порівняння товарів</h4><p>Порівняльна таблиця характеристик 2+ товарів прямо в чаті, з виділенням відмінностей і кнопками на PDP.</p></div></div>
+        <div class="principle"><span class="idx">04</span><div><h4>Характеристики простими словами</h4><p>AI пояснює технічні характеристики простою мовою &mdash; не треба гуглити «що таке IPS-матриця».</p></div></div>
+        <div class="principle"><span class="idx">05</span><div><h4>Reviews Summary</h4><p>Ключові плюси й мінуси з відгуків покупців замість читання сотень коментарів.</p></div></div>
+        <div class="principle"><span class="idx">06</span><div><h4>Багатий чат-UI</h4><p>Каруселі товарів, 6 типів Quick Replies, iOS-style Stories, навігаційні лінки для авторизованих, proactive-підказки на PDP.</p></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Мета-історія</span>
+        <h2>AI робить AI &mdash; і внесок BA</h2>
+      </div>
+      <div class="cols2">
+        <div class="panel origin">
+          <h3>Збудовано через AI Workflow</h3>
+          <p class="big">Артефакти задач для ComfyAI &mdash; BA-спеки, дизайни, тести &mdash; генерували PM/BA/Design/Dev/QA/Perf-агенти <a href="ai-workflow.html">AI Workflow</a> з рев&rsquo;ю за skills-правилами. Інструмент став production-продуктом; продукт збудований інструментом.</p>
+        </div>
+        <div class="panel">
+          <h3>Повноцінна BA-робота</h3>
+          <p class="big">Discovery, <b>57 NEEDs</b> за <a href="needs-driven-development.html">Needs-Driven Development</a>, MVP-скоуп (5 агентів замість «все одразу»), UX діалогових сценаріїв і Quick Replies. Частина обкатаних тут AI-фіч зараз тиражується в ecom-додаток Comfy.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Масштаб і доставка</span>
+        <h2>Цифри</h2>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="fig">45<span class="u">K+</span></div><div class="lab">рядків Python</div></div>
+        <div class="metric"><div class="fig">377</div><div class="lab">git-комітів &middot; 6 місяців</div></div>
+        <div class="metric"><div class="fig">5</div><div class="lab">AI-агентів</div></div>
+        <div class="metric"><div class="fig">6</div><div class="lab">мікросервісів</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">57</div><div class="lab">NEEDs за NDD</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">9</div><div class="lab">патернів роутингу &middot; пріоритети 70&ndash;110</div></div>
+        <div class="metric" style="border-bottom:none;"><div class="fig">6</div><div class="lab">типів Quick Replies</div></div>
+        <div class="metric" style="border-bottom:none;border-right:none;"><div class="fig">5</div><div class="lab">типів self-learning тригерів</div></div>
+      </div>
+      <div class="stack" style="margin-top:18px;">
+        <span class="chip">Python</span><span class="chip">FastAPI</span><span class="chip">AWS Bedrock</span><span class="chip">Nova Micro</span><span class="chip">MongoDB</span><span class="chip">Redis</span><span class="chip">S3 + Athena</span><span class="chip">WebSocket</span><span class="chip">JWT</span><span class="chip">Bloomreach API</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Висновок</span>
+        <h2>Що показує цей кейс</h2>
+      </div>
+      <p class="thesis">Production multi-agent система &mdash; це здебільшого <span class="em">не</span> про LLM: це детермінований роутинг перед генерацією, guardrails навколо бази знань, self-learning, який не блокує користувача, і продуктові фічі, спроектовані від реального діалогового UX. LLM &mdash; один із компонентів; інженерія навколо нього і є платформою.</p>
+      <p class="muted" style="margin-top:14px;">Повʼязане: <a href="ai-workflow.html">AI Workflow &mdash; платформа, якою це збудовано</a> &middot; <a href="ba-to-ai-engineer.html">BA &rarr; AI Engineer: без PO і PM</a> &middot; <a href="dogplan-under-the-hood.html">DogPlan під капотом</a>.</p>
+    </div>
+
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('ndd-root');
+      var btns = document.querySelectorAll('.lang-toggle button');
+      // Shared site-wide language key (same as the resume page): 'ua' | 'en'.
+      function set(l, persist) {
+        root.setAttribute('data-lang', l);
+        document.documentElement.lang = (l === 'en') ? 'en' : 'uk';
+        btns.forEach(function (b) {
+          var on = b.getAttribute('data-set') === l;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (persist) { try { localStorage.setItem('lifer-lang', l === 'en' ? 'en' : 'ua'); } catch (e) {} }
+      }
+      var saved;
+      try { saved = localStorage.getItem('lifer-lang'); } catch (e) {}
+      set(saved === 'en' ? 'en' : 'uk', false);
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { set(b.getAttribute('data-set'), true); });
+      });
+    })();
+  </script>
+
+</div>
+</body></html>
