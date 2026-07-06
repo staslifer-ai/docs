@@ -927,5 +927,109 @@ syncRunBtn();
   ['click','keydown','wheel','touchstart'].forEach(function(ev){window.addEventListener(ev,skip,{passive:true});});
 })();
 </script>
+<!-- ============ Ask AI про мене (scripted widget, no backend) ============ -->
+<style>
+  .askai-fab{position:fixed;right:22px;bottom:22px;z-index:120;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;
+    background:var(--grad);box-shadow:0 12px 32px -8px rgba(229,57,127,.7);display:flex;align-items:center;justify-content:center;transition:.25s}
+  .askai-fab:hover{transform:translateY(-3px) scale(1.05)}
+  .askai-fab svg{width:26px;height:26px;fill:#fff}
+  .askai{position:fixed;right:22px;bottom:90px;z-index:121;width:min(370px,calc(100vw - 32px));max-height:min(540px,calc(100vh - 120px));
+    display:none;flex-direction:column;background:var(--bg2);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.85)}
+  .askai.open{display:flex}
+  .askai-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(20,20,36,.5)}
+  .askai-head .dot{width:9px;height:9px;border-radius:50%;background:var(--grad);box-shadow:0 0 10px rgba(229,57,127,.8);flex:none}
+  .askai-head .t{font-family:var(--mono);font-size:13px;font-weight:700}
+  .askai-head .s{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:1px}
+  .askai-close{margin-left:auto;background:transparent;border:0;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:4px}
+  .askai-close:hover{color:#fff}
+  .askai-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .askai-msg{max-width:86%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55}
+  .askai-msg.bot{background:var(--card-solid);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start;color:#dcdcec}
+  .askai-msg.user{background:var(--grad);color:#fff;border-bottom-right-radius:4px;align-self:flex-end;font-weight:600}
+  .askai-msg.bot a{color:var(--p2);text-decoration:underline;text-underline-offset:2px}
+  .askai-msg.bot b{color:#fff}
+  .askai-typing{align-self:flex-start;font-family:var(--mono);color:var(--dim);font-size:13px;padding:6px 2px}
+  .askai-qr{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 16px;border-top:1px solid var(--line)}
+  .askai-qr button{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--muted);background:var(--card);
+    border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;transition:.2s}
+  .askai-qr button:hover{color:#fff;border-color:var(--p2)}
+  @media print{.askai-fab,.askai{display:none !important}}
+</style>
+<button class="askai-fab" id="askaiFab" type="button" aria-label="Ask AI про мене" aria-expanded="false" aria-controls="askaiPanel">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.9 3 3 6.5 3 10.8c0 2.4 1.2 4.5 3.2 5.9-.1.8-.5 2-1.6 3.3-.2.3 0 .7.4.7 2 0 3.6-.9 4.6-1.6.7.2 1.6.3 2.4.3 5.1 0 9-3.5 9-7.8S17.1 3 12 3z"/></svg>
+</button>
+<div class="askai" id="askaiPanel" role="dialog" aria-label="Ask AI про мене">
+  <div class="askai-head">
+    <span class="dot"></span>
+    <div><div class="t">Ask AI <span class="grad-text">про мене</span></div><div class="s" id="askaiSub">демо у стилі ComfyAI &middot; без бекенду</div></div>
+    <button class="askai-close" id="askaiClose" type="button" aria-label="Close">&times;</button>
+  </div>
+  <div class="askai-msgs" id="askaiMsgs"></div>
+  <div class="askai-qr" id="askaiQr"></div>
+</div>
+<script>
+(function(){
+  var fab=document.getElementById('askaiFab'), panel=document.getElementById('askaiPanel'),
+      msgs=document.getElementById('askaiMsgs'), qr=document.getElementById('askaiQr'),
+      closeBtn=document.getElementById('askaiClose'), sub=document.getElementById('askaiSub');
+  function lang(){ try{ return localStorage.getItem('lifer-lang')==='en'?'en':'ua'; }catch(e){ return 'ua'; } }
+  var I18N={
+    ua:{
+      sub:'демо у стилі ComfyAI · без бекенду',
+      hello:'Привіт! Я міні-віджет у стилі <b>ComfyAI</b> — системи, яку збудував Станіслав. Бекенду тут немає, зате відповіді чесні 😉 Що цікавить?',
+      topics:{
+        exp:{q:'Хто такий Станіслав?',a:'<b>AI Engineer</b> у Comfy (з жовтня 2025), ex-Business Analyst. Придумав і збудував платформу <b>AI Workflow</b>, автор методології <a href="needs-driven-development.html">Needs-Driven Development</a>. Представляв AI Workflow на <b>AWS Summit Warsaw 2026</b>.'},
+        proj:{q:'Головні проєкти?',a:'<b>AI Workflow</b> — 16 агентів, 14+ етапів (<a href="ai-workflow.html">стаття</a>); <b>ComfyAI</b> — 5 агентів у підтримці клієнтів, 45K+ рядків (<a href="comfyai-under-the-hood.html">deep-dive</a>); <b>DogPlan</b> — власний SaaS live на dogplan.net (<a href="dogplan-under-the-hood.html">під капотом</a>).'},
+        ndd:{q:'Що за методологія NDD?',a:'<b>Needs-Driven Development</b> — авторська методологія: одиниця роботи — потреба користувача (NEED), простежена від press release до задеплоєного коду через пайплайн AI-агентів. Детально — у <a href="needs-driven-development.html">one-pager</a>.'},
+        stack:{q:'Технічний стек?',a:'Python · FastAPI · PostgreSQL (+pgvector) · Redis · AWS Bedrock · Anthropic Claude · MongoDB · HTMX · vanilla JS. Повний список — у <a href="index.html#stack">секції «Стек»</a>.'},
+        num:{q:'Цифри?',a:'<b>240×</b> прискорення звітів · <b>−85%</b> часу на BA-доки · <b>57</b> реалізованих потреб · <b>145+</b> задач у беклозі · <b>3</b> production-системи. Все чесно виміряно 📊'},
+        contact:{q:'Як зв’язатися?',a:'📧 <a href="mailto:stanislavlifer6mail@gmail.com">stanislavlifer6mail@gmail.com</a> · <a href="https://linkedin.com/in/staslifer" target="_blank" rel="noopener">LinkedIn</a> · Telegram <a href="https://t.me/stasmike14" target="_blank" rel="noopener">@stasmike14</a> · 📍 Kyiv. Відкритий до AI engineering / AI product ролей.'},
+        dog:{q:'А що за собаки? 🐾',a:'Другий світ Станіслава — <a href="cynology.html">кінологія</a>: серйозне захоплення дресурою, довкола якого він збудував власну AI-платформу <b>DogPlan</b>. Так, він застосував інженерію навіть до собак 🐕'}
+      }
+    },
+    en:{
+      sub:'ComfyAI-style demo · no backend',
+      hello:'Hi! I’m a mini-widget in the style of <b>ComfyAI</b> — a system Stanislav built. No backend here, but the answers are honest 😉 What are you curious about?',
+      topics:{
+        exp:{q:'Who is Stanislav?',a:'<b>AI Engineer</b> at Comfy (since Oct 2025), ex-Business Analyst. Conceived and built the <b>AI Workflow</b> platform, author of <a href="needs-driven-development.html">Needs-Driven Development</a>. Presented AI Workflow at <b>AWS Summit Warsaw 2026</b>.'},
+        proj:{q:'Main projects?',a:'<b>AI Workflow</b> — 16 agents, 14+ stages (<a href="ai-workflow.html">article</a>); <b>ComfyAI</b> — 5 support agents, 45K+ LOC (<a href="comfyai-under-the-hood.html">deep-dive</a>); <b>DogPlan</b> — his own SaaS live at dogplan.net (<a href="dogplan-under-the-hood.html">under the hood</a>).'},
+        ndd:{q:'What is NDD?',a:'<b>Needs-Driven Development</b> — his own methodology: the unit of work is a user need (NEED), traced from a press release to deployed code through a pipeline of AI agents. Details in the <a href="needs-driven-development.html">one-pager</a>.'},
+        stack:{q:'Tech stack?',a:'Python · FastAPI · PostgreSQL (+pgvector) · Redis · AWS Bedrock · Anthropic Claude · MongoDB · HTMX · vanilla JS. Full list in the <a href="index.html#stack">Stack section</a>.'},
+        num:{q:'The numbers?',a:'<b>240×</b> faster reporting · <b>−85%</b> time on BA docs · <b>57</b> needs shipped · <b>145+</b> backlog tasks · <b>3</b> production systems. All honestly measured 📊'},
+        contact:{q:'How to reach him?',a:'📧 <a href="mailto:stanislavlifer6mail@gmail.com">stanislavlifer6mail@gmail.com</a> · <a href="https://linkedin.com/in/staslifer" target="_blank" rel="noopener">LinkedIn</a> · Telegram <a href="https://t.me/stasmike14" target="_blank" rel="noopener">@stasmike14</a> · 📍 Kyiv. Open to AI engineering / AI product roles.'},
+        dog:{q:'What about the dogs? 🐾',a:'Stanislav’s second world is <a href="cynology.html">cynology</a>: a serious passion for dog training, around which he built his own AI platform <b>DogPlan</b>. Yes, he applied engineering even to dogs 🐕'}
+      }
+    }
+  };
+  var started=false;
+  function el(tag,cls,html){ var e=document.createElement(tag); e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+  function scroll(){ msgs.scrollTop=msgs.scrollHeight; }
+  function bot(html,cb){
+    var t=el('div','askai-typing','&#9679;&#9679;&#9679;'); msgs.appendChild(t); scroll();
+    setTimeout(function(){ t.remove(); msgs.appendChild(el('div','askai-msg bot',html)); scroll(); if(cb)cb(); },650);
+  }
+  function renderQr(){
+    var L=I18N[lang()]; qr.innerHTML='';
+    Object.keys(L.topics).forEach(function(k){
+      var b=el('button','',L.topics[k].q); b.type='button';
+      b.addEventListener('click',function(){
+        var LL=I18N[lang()];
+        msgs.appendChild(el('div','askai-msg user',LL.topics[k].q)); scroll();
+        bot(LL.topics[k].a);
+      });
+      qr.appendChild(b);
+    });
+  }
+  function open(){
+    panel.classList.add('open'); fab.setAttribute('aria-expanded','true');
+    sub.textContent=I18N[lang()].sub;
+    if(!started){ started=true; renderQr(); bot(I18N[lang()].hello); }
+  }
+  function close(){ panel.classList.remove('open'); fab.setAttribute('aria-expanded','false'); }
+  fab.addEventListener('click',function(){ panel.classList.contains('open')?close():open(); });
+  closeBtn.addEventListener('click',close);
+})();
+</script>
 </body>
 </html>
