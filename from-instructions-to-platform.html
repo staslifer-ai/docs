@@ -20,6 +20,7 @@
 </head>
 <body>
 <style>
+  @font-face { font-family: "Fixel Display"; src: url("assets/fonts/FixelDisplay-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
   :root {
     --paper: #f5f6f8;
     --paper-2: #ffffff;
@@ -28,9 +29,9 @@
     --ink-3: #8a8f9a;
     --line: #dadde3;
     --line-2: #e7e9ee;
-    --accent: #0f5c6b;
-    --accent-2: #127d8e;
-    --accent-wash: #e9f1f2;
+    --accent: #5b3fa8;
+    --accent-2: #7c5cd6;
+    --accent-wash: #efeaf9;
     --pass: #2e7d5b;
     --return: #b4532a;
     --serif: Georgia, "Times New Roman", serif;
@@ -52,6 +53,9 @@
   }
 
   .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+  .ndd::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg,#8b5cf6 0%,#e83b8c 50%,#34d399 100%); z-index: 99; }
+  @view-transition { navigation: auto; }
 
   .ndd p { margin: 0; }
   .ndd h1, .ndd h2, .ndd h3 { margin: 0; text-wrap: balance; font-weight: 600; }
@@ -75,14 +79,14 @@
     background: var(--accent); color: #fff;
     padding: 9px 17px 9px 15px; border-radius: 999px;
     font-size: 12.5px; letter-spacing: 0.13em; font-weight: 600;
-    box-shadow: 0 10px 26px -12px rgba(15, 92, 107, 0.6);
+    box-shadow: 0 10px 26px -12px rgba(91, 63, 168, 0.6);
   }
   .masthead .eyebrow::before { content: "\2726"; margin-right: 9px; font-size: 13px; }
   .muted { color: var(--ink-2); }
 
   /* ---- Masthead ---- */
   .masthead { border-top: 3px solid var(--ink); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; }
-  .masthead h1 { font-family: var(--serif); font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
+  .masthead h1 { font-family: "Fixel Display", var(--serif); font-weight: 600; font-size: clamp(38px, 7vw, 62px); line-height: 1.02; letter-spacing: -0.015em; }
   .masthead .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--ink-2); max-width: 46ch; }
   .masthead .lede b { color: var(--ink); font-weight: 600; }
 
@@ -96,7 +100,7 @@
   /* ---- Section scaffolding ---- */
   .sec { margin-top: clamp(46px, 7vw, 74px); }
   .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-  .sec-head h2 { font-family: var(--serif); font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
+  .sec-head h2 { font-family: "Fixel Display", var(--serif); font-weight: 600; font-size: clamp(24px, 3.4vw, 31px); letter-spacing: -0.01em; }
   .sec-head .muted { font-size: 15px; max-width: 64ch; }
 
   /* ---- Definition band ---- */
@@ -159,13 +163,13 @@
 
   /* ---- Highlights block ---- */
   .resume { background: var(--ink); color: #e9eaee; padding: clamp(24px, 4vw, 40px); }
-  .resume .eyebrow { color: #7fd0d8; }
-  .resume h2 { font-family: var(--serif); color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
+  .resume .eyebrow { color: #b9a6f0; }
+  .resume h2 { font-family: "Fixel Display", var(--serif); font-weight: 600; color: #fff; font-size: clamp(22px, 3vw, 28px); margin: 10px 0 6px; }
   .resume .sub { color: #a7abb5; font-size: 14px; margin-bottom: 22px; }
-  .resume a { color: #7fd0d8; }
+  .resume a { color: #b9a6f0; }
   .bullets { display: flex; flex-direction: column; gap: 16px; }
   .bullet { display: grid; grid-template-columns: auto 1fr; gap: 14px; font-size: 15px; line-height: 1.5; }
-  .bullet .b { color: #7fd0d8; font-weight: 700; }
+  .bullet .b { color: #b9a6f0; font-weight: 700; }
   .bullet b { color: #fff; font-weight: 600; }
 
   /* ---- Attribution footer ---- */
